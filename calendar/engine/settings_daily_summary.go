@@ -28,8 +28,8 @@ type dailySummarySetting struct {
 
 func NewDailySummarySetting(inStore settingspanel.SettingStore, getTimezone func(userID string) (string, error)) settingspanel.Setting {
 	os := &dailySummarySetting{
-		title:       "Daily Summary",
-		description: "When do you want to receive the daily summary?\n If you update this setting, it will automatically update to your the timezone currently set on your calendar.",
+		title:       "일일 요약",
+		description: "언제 일일 요약을 받으시겠습니까?\n이 설정을 업데이트하면 현재 캘린더에 설정된 시간대로 자동으로 업데이트됩니다.",
 		id:          store.DailySummarySettingID,
 		dependsOn:   "",
 		store:       inStore,
@@ -53,7 +53,7 @@ func NewDailySummarySetting(inStore settingspanel.SettingStore, getTimezone func
 func (s *dailySummarySetting) Set(userID string, value interface{}) error {
 	_, ok := value.(string)
 	if !ok {
-		return errors.New("trying to set Daily Summary Setting without a string value")
+		return errors.New("문자열 값 없이 일일 요약 설정을 설정하려고 합니다")
 	}
 	err := s.store.SetSetting(userID, s.id, value)
 	if err != nil {
@@ -71,7 +71,7 @@ func (s *dailySummarySetting) Get(userID string) (interface{}, error) {
 
 	_, ok := value.(*store.DailySummaryUserSettings)
 	if !ok {
-		return nil, errors.New("current value is not a Daily Summary Setting")
+		return nil, errors.New("현재 값이 일일 요약 설정이 아닙니다")
 	}
 
 	return value, nil
@@ -94,8 +94,8 @@ func (s *dailySummarySetting) GetDependency() string {
 }
 
 func (s *dailySummarySetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	title := fmt.Sprintf("설정: %s", s.title)
+	currentValueMessage := "비활성화됨"
 
 	actions := []*model.PostAction{}
 
@@ -133,12 +133,12 @@ func (s *dailySummarySetting) GetSlackAttachments(userID, settingHandler string,
 
 	timezone, err := s.getTimezone(userID)
 	if err != nil {
-		return nil, fmt.Errorf("could not load the timezone. err=%v", err)
+		return nil, fmt.Errorf("시간대를 로드할 수 없습니다. err=%v", err)
 	}
 	fullTime = fullTime + " " + timezone
 
 	actionOptionsH := model.PostAction{
-		Name: "H:",
+		Name: "시:",
 		Integration: &model.PostActionIntegration{
 			URL: settingHandler,
 			Context: map[string]interface{}{
@@ -151,7 +151,7 @@ func (s *dailySummarySetting) GetSlackAttachments(userID, settingHandler string,
 	}
 
 	actionOptionsM := model.PostAction{
-		Name: "M:",
+		Name: "분:",
 		Integration: &model.PostActionIntegration{
 			URL: settingHandler,
 			Context: map[string]interface{}{
@@ -164,7 +164,7 @@ func (s *dailySummarySetting) GetSlackAttachments(userID, settingHandler string,
 	}
 
 	actionOptionsAPM := model.PostAction{
-		Name: "AM/PM:",
+		Name: "오전/오후:",
 		Integration: &model.PostActionIntegration{
 			URL: settingHandler,
 			Context: map[string]interface{}{
@@ -180,10 +180,10 @@ func (s *dailySummarySetting) GetSlackAttachments(userID, settingHandler string,
 		actions = []*model.PostAction{&actionOptionsH, &actionOptionsM, &actionOptionsAPM}
 	}
 
-	buttonText := "Enable"
+	buttonText := "활성화"
 	enable := "true"
 	if currentEnable {
-		buttonText = "Disable"
+		buttonText = "비활성화"
 		enable = "false"
 	}
 	actionToggle := model.PostAction{
