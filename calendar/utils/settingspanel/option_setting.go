@@ -48,7 +48,7 @@ func (s *optionSetting) Get(userID string) (interface{}, error) {
 	}
 	valueString, ok := value.(string)
 	if !ok {
-		return "", errors.New("current value is not a string")
+		return "", errors.New("현재 값이 문자열이 아닙니다")
 	}
 
 	return valueString, nil
@@ -71,8 +71,8 @@ func (s *optionSetting) GetDependency() string {
 }
 
 func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	title := fmt.Sprintf("설정: %s", s.title)
+	currentValueMessage := "비활성화됨"
 
 	actions := []*model.PostAction{}
 	if !disabled {
@@ -85,10 +85,10 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 			currentTextValue = s.defaultOption
 		}
 
-		currentValueMessage = fmt.Sprintf("**Current value:** %s", currentTextValue)
+		currentValueMessage = fmt.Sprintf("**현재 값:** %s", currentTextValue)
 
 		actionOptions := model.PostAction{
-			Name: "Select an option:",
+			Name: "옵션 선택:",
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler + "?" + s.id + "=true",
 				Context: map[string]interface{}{
