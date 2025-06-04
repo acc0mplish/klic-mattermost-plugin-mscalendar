@@ -15,10 +15,10 @@ import (
 )
 
 var prettyStatuses = map[string]string{
-	model.StatusOnline:  "Online",
-	model.StatusAway:    "Away",
-	model.StatusDnd:     "Do Not Disturb",
-	model.StatusOffline: "Offline",
+	model.StatusOnline:  "온라인",
+	model.StatusAway:    "자리 비움",
+	model.StatusDnd:     "방해 금지",
+	model.StatusOffline: "오프라인",
 }
 
 func RenderStatusChangeNotificationView(events []*remote.Event, status, url string) *model.SlackAttachment {
@@ -38,14 +38,14 @@ func RenderStatusChangeNotificationView(events []*remote.Event, status, url stri
 
 func RenderEventWillStartLine(subject, weblink string, startTime time.Time) string {
 	link, _ := url.QueryUnescape(weblink)
-	eventString := fmt.Sprintf("Your event [%s](%s) will start soon.", subject, link)
+	eventString := fmt.Sprintf("이벤트 [%s](%s)가 곧 시작됩니다.", subject, link)
 	if subject == "" {
-		eventString = fmt.Sprintf("[An event with no subject](%s) will start soon.", link)
+		eventString = fmt.Sprintf("[제목 없는 이벤트](%s)가 곧 시작됩니다.", link)
 	}
 	if startTime.Before(time.Now()) {
-		eventString = fmt.Sprintf("Your event [%s](%s) is ongoing.", subject, link)
+		eventString = fmt.Sprintf("이벤트 [%s](%s)가 진행 중입니다.", subject, link)
 		if subject == "" {
-			eventString = fmt.Sprintf("[An event with no subject](%s) is ongoing.", link)
+			eventString = fmt.Sprintf("[제목 없는 이벤트](%s)가 진행 중입니다.", link)
 		}
 	}
 	return eventString
@@ -53,18 +53,18 @@ func RenderEventWillStartLine(subject, weblink string, startTime time.Time) stri
 
 func renderScheduleItem(event *remote.Event, status string) string {
 	if event == nil {
-		return fmt.Sprintf("You have no upcoming events.\n Shall I change your status back to %s?", prettyStatuses[status])
+		return fmt.Sprintf("예정된 이벤트가 없습니다.\n상태를 %s로 다시 변경할까요?", prettyStatuses[status])
 	}
 
 	resp := RenderEventWillStartLine(event.Subject, event.Weblink, event.Start.Time())
 
-	resp += fmt.Sprintf("\nShall I change your status to %s?", prettyStatuses[status])
+	resp += fmt.Sprintf("\n상태를 %s로 변경할까요?", prettyStatuses[status])
 	return resp
 }
 
 func statusChangeAttachments(event *remote.Event, status, url string) *model.SlackAttachment {
 	actionYes := &model.PostAction{
-		Name: "Yes",
+		Name: "예",
 		Integration: &model.PostActionIntegration{
 			URL: url,
 			Context: map[string]interface{}{
@@ -77,7 +77,7 @@ func statusChangeAttachments(event *remote.Event, status, url string) *model.Sla
 	}
 
 	actionNo := &model.PostAction{
-		Name: "No",
+		Name: "아니오",
 		Integration: &model.PostActionIntegration{
 			URL: url,
 			Context: map[string]interface{}{
@@ -100,7 +100,7 @@ func statusChangeAttachments(event *remote.Event, status, url string) *model.Sla
 		actionNo.Integration.Context["startTime"] = string(marshalledStart)
 	}
 
-	title := "Status change"
+	title := "상태 변경"
 	text := renderScheduleItem(event, status)
 	sa := &model.SlackAttachment{
 		Title:    title,
