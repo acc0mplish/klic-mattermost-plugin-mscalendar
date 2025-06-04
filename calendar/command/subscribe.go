@@ -16,14 +16,14 @@ func (c *Command) subscribe(parameters ...string) (string, bool, error) {
 
 	_, err := c.Engine.LoadMyEventSubscription()
 	if err == nil {
-		return "You are already subscribed to events.", false, nil
+		return "이미 이벤트를 구독하고 있습니다.", false, nil
 	}
 
 	_, err = c.Engine.CreateMyEventSubscription()
 	if err != nil {
 		return "", false, err
 	}
-	return "You are now subscribed to events.", false, nil
+	return "이제 이벤트를 구독합니다.", false, nil
 }
 
 func (c *Command) debugList() (string, bool, error) {
@@ -31,5 +31,5 @@ func (c *Command) debugList() (string, bool, error) {
 	if err != nil {
 		return "", false, err
 	}
-	return fmt.Sprintf("Subscriptions:%s", utils.JSONBlock(subs)), false, nil
+	return fmt.Sprintf("구독:%s", utils.JSONBlock(subs)), false, nil
 }
