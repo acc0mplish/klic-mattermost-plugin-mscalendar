@@ -76,15 +76,15 @@ func (m *mscalendar) CreateEvent(user *User, event *remote.Event, mattermostUser
 		return nil, err
 	}
 
-	// invite non-mapped Mattermost
+	// 매핑되지 않은 Mattermost 사용자 초대
 	for id := range mattermostUserIDs {
 		mattermostUserID := mattermostUserIDs[id]
 		_, err := m.Store.LoadUser(mattermostUserID)
 		if err != nil {
 			if err.Error() == "not found" {
-				_, err = m.Poster.DM(mattermostUserID, "You have been invited to a %s event but have not linked your account.  Feel free to join us by connecting your %s account using `/%s connect`", m.Provider.DisplayName, m.Provider.DisplayName, m.Provider.CommandTrigger)
+				_, err = m.Poster.DM(mattermostUserID, "당신은 %s 이벤트에 초대되었지만 계정을 연결하지 않았습니다. `/%s connect`를 사용하여 %s 계정을 연결하고 자유롭게 참여하세요", m.Provider.DisplayName, m.Provider.CommandTrigger, m.Provider.DisplayName)
 				if err != nil {
-					m.Logger.Warnf("CreateEvent error creating DM. err=%v", err)
+					m.Logger.Warnf("CreateEvent DM 생성 오류. err=%v", err)
 					continue
 				}
 			}
