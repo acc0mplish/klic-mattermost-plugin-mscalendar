@@ -9,7 +9,7 @@ func (c *Command) event(parameters ...string) (string, bool, error) {
 	}
 
 	if parameters[0] == "create" {
-		return "Creating events is only supported on desktop.", false, nil
+		return "이벤트 생성은 데스크톱에서만 지원됩니다.", false, nil
 	}
 
 	return "", false, nil
