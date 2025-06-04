@@ -17,12 +17,12 @@ import (
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/oauth2connect"
 )
 
-const BotWelcomeMessage = "Bot user connected to account %s."
+const BotWelcomeMessage = "봇 사용자가 계정 %s에 연결되었습니다."
 
 const (
-	RemoteUserAlreadyConnected         = "%s account `%s` is already mapped to Mattermost account `%s`. Please run `/%s disconnect`, while logged in as the Mattermost account"
-	RemoteUserAlreadyConnectedDisabled = "%s account `%s` is already mapped to a Mattermost account, but the account is deactivated. Please enable it and run `/%s disconnect`,  while logged in as the other Mattermost account, and try again"
-	RemoteUserAlreadyConnectedNotFound = "%s account `%s` is already mapped to a Mattermost account, but the Mattermost user could not be found"
+	RemoteUserAlreadyConnected         = "%s 계정 `%s`이(가) 이미 Mattermost 계정 `%s`에 연결되어 있습니다. 해당 Mattermost 계정으로 로그인한 후 `/%s disconnect`를 실행해 주세요"
+	RemoteUserAlreadyConnectedDisabled = "%s 계정 `%s`이(가) 이미 Mattermost 계정에 연결되어 있지만, 해당 계정이 비활성화되어 있습니다. 계정을 활성화하고 다른 Mattermost 계정으로 로그인한 후 `/%s disconnect`를 실행한 다음 다시 시도해 주세요"
+	RemoteUserAlreadyConnectedNotFound = "%s 계정 `%s`이(가) 이미 Mattermost 계정에 연결되어 있지만, 해당 Mattermost 사용자를 찾을 수 없습니다"
 )
 
 type oauth2App struct {
@@ -38,7 +38,7 @@ func NewOAuth2App(env Env) oauth2connect.App {
 func (app *oauth2App) InitOAuth2(mattermostUserID string) (url string, err error) {
 	user, err := app.Store.LoadUser(mattermostUserID)
 	if err == nil {
-		return "", fmt.Errorf("user is already connected to %s", user.Remote.Mail)
+		return "", fmt.Errorf("사용자가 이미 %s에 연결되어 있습니다", user.Remote.Mail)
 	}
 
 	conf := app.Remote.NewOAuth2Config()
@@ -53,19 +53,19 @@ func (app *oauth2App) InitOAuth2(mattermostUserID string) (url string, err error
 
 func (app *oauth2App) CompleteOAuth2(authedUserID, code, state string) error {
 	if authedUserID == "" || code == "" || state == "" {
-		return errors.New("missing user, code or state")
+		return errors.New("사용자, 코드 또는 상태가 누락되었습니다")
 	}
 
 	oconf := app.Remote.NewOAuth2Config()
 
 	err := app.Store.VerifyOAuth2State(state)
 	if err != nil {
-		return errors.WithMessage(err, "missing stored state")
+		return errors.WithMessage(err, "저장된 상태가 누락되었습니다")
 	}
 
 	mattermostUserID := strings.Split(state, "_")[1]
 	if mattermostUserID != authedUserID {
-		return errors.New("not authorized, user ID mismatch")
+		return errors.New("권한이 없습니다, 사용자 ID가 일치하지 않습니다")
 	}
 
 	ctx := context.Background()
@@ -95,7 +95,7 @@ func (app *oauth2App) CompleteOAuth2(authedUserID, code, state string) error {
 			return errors.New(msg)
 		}
 
-		// Couldn't fetch connected MM account. Reject connect attempt.
+		// 연결된 MM 계정을 가져올 수 없습니다. 연결 시도를 거부합니다.
 		msg := fmt.Sprintf(RemoteUserAlreadyConnectedNotFound, config.Provider.DisplayName, me.Mail)
 		app.Poster.DM(authedUserID, msg)
 		return errors.New(msg)
@@ -103,7 +103,7 @@ func (app *oauth2App) CompleteOAuth2(authedUserID, code, state string) error {
 
 	user, userErr := app.PluginAPI.GetMattermostUser(mattermostUserID)
 	if userErr != nil {
-		return fmt.Errorf("error retrieving mattermost user (%s): %w", mattermostUserID, userErr)
+		return fmt.Errorf("mattermost 사용자 검색 중 오류 발생 (%s): %w", mattermostUserID, userErr)
 	}
 
 	u := &store.User{
