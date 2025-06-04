@@ -32,7 +32,7 @@ func (processor *notificationProcessor) newSlackAttachment(n *remote.Notificatio
 
 func (processor *notificationProcessor) newEventSlackAttachment(n *remote.Notification, timezone string) *model.SlackAttachment {
 	sa := processor.newSlackAttachment(n)
-	sa.Title = "(new) " + sa.Title
+	sa.Title = "(신규) " + sa.Title
 
 	fields := eventToFields(n.Event, timezone)
 	for _, k := range notificationFieldOrder {
@@ -53,7 +53,7 @@ func (processor *notificationProcessor) newEventSlackAttachment(n *remote.Notifi
 
 func (processor *notificationProcessor) updatedEventSlackAttachment(n *remote.Notification, prior *remote.Event, timezone string) (bool, *model.SlackAttachment) {
 	sa := processor.newSlackAttachment(n)
-	sa.Title = "(updated) " + sa.Title
+	sa.Title = "(업데이트됨) " + sa.Title
 
 	newFields := eventToFields(n.Event, timezone)
 	priorFields := eventToFields(prior, timezone)
@@ -135,7 +135,7 @@ func NewPostActionForEventResponse(eventID, response, url string) []*model.PostA
 	}
 
 	pa := &model.PostAction{
-		Name: "Response",
+		Name: "응답",
 		Type: model.PostActionTypeSelect,
 		Integration: &model.PostActionIntegration{
 			URL:     url,
@@ -162,16 +162,16 @@ func NewPostActionForEventResponse(eventID, response, url string) []*model.PostA
 func eventToFields(e *remote.Event, timezone string) fields.Fields {
 	date := func(dtStart, dtEnd *remote.DateTime) (time.Time, time.Time, string) {
 		if dtStart == nil || dtEnd == nil {
-			return time.Time{}, time.Time{}, "n/a"
+			return time.Time{}, time.Time{}, "해당 없음"
 		}
 
 		dtStart = dtStart.In(timezone)
 		dtEnd = dtEnd.In(timezone)
 		tStart := dtStart.Time()
 		tEnd := dtEnd.Time()
-		startFormat := "Monday, January 02"
+		startFormat := "Monday, June 02"
 		if tStart.Year() != time.Now().Year() {
-			startFormat = "Monday, January 02, 2006"
+			startFormat = "Monday, June 02, 2025"
 		}
 		startFormat += " · (" + time.Kitchen
 		endFormat := " - " + time.Kitchen + ")"
@@ -189,25 +189,25 @@ func eventToFields(e *remote.Event, timezone string) fields.Fields {
 	dur := ""
 	switch {
 	case days > 0:
-		dur = fmt.Sprintf("%v days", days)
+		dur = fmt.Sprintf("%v일", days)
 
 	case e.IsAllDay:
-		dur = "all-day"
+		dur = "종일"
 
 	default:
 		switch hours {
 		case 0:
 			// ignore
 		case 1:
-			dur = "one hour"
+			dur = "1시간"
 		default:
-			dur = fmt.Sprintf("%v hours", hours)
+			dur = fmt.Sprintf("%v시간", hours)
 		}
 		if minutes > 0 {
 			if dur != "" {
 				dur += ", "
 			}
-			dur += fmt.Sprintf("%v minutes", minutes)
+			dur += fmt.Sprintf("%v분", minutes)
 		}
 	}
 
@@ -219,7 +219,7 @@ func eventToFields(e *remote.Event, timezone string) fields.Fields {
 	}
 
 	if len(attendees) == 0 {
-		attendees = append(attendees, fields.NewStringValue("None"))
+		attendees = append(attendees, fields.NewStringValue("없음"))
 	}
 
 	ff := fields.Fields{
@@ -241,7 +241,7 @@ func eventToFields(e *remote.Event, timezone string) fields.Fields {
 
 func valueOrNotDefined(s string) string {
 	if s == "" {
-		return "Not defined"
+		return "정의되지 않음"
 	}
 
 	return s
