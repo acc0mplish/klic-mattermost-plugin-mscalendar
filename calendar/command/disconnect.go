@@ -10,5 +10,5 @@ func (c *Command) disconnect(_ ...string) (string, bool, error) {
 	}
 	c.Engine.ClearSettingsPosts(c.Args.UserId)
 
-	return "Successfully disconnected your account", false, nil
+	return "계정 연결이 성공적으로 해제되었습니다", false, nil
 }
