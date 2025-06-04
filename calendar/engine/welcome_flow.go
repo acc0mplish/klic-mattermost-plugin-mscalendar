@@ -60,61 +60,61 @@ func (wf *WelcomeFlow) FlowDone(userID string) {
 func (wf *WelcomeFlow) makeSteps() {
 	steps := []flow.Step{
 		&flow.EmptyStep{
-			Title:   "Update Status",
-			Message: fmt.Sprintf("You can type `/%s` to configure the plugin to update your status to \"Away\" or \"Do not disturb\" when you're in a meeting.", config.Provider.CommandTrigger),
+			Title:   "상태 업데이트",
+			Message: fmt.Sprintf("회의 중일 때 상태를 \"자리 비움\" 또는 \"방해 금지\"로 업데이트하도록 플러그인을 구성하려면 `/%s`를 입력하세요.", config.Provider.CommandTrigger),
 		},
 		&flow.SimpleStep{
-			Title:                "Set Custom Status",
-			Message:              "Do you want to set a Mattermost custom status automatically when you're in a meeting?",
+			Title:                "사용자 정의 상태 설정",
+			Message:              "회의 중일 때 Mattermost 사용자 정의 상태를 자동으로 설정하시겠습니까?",
 			PropertyName:         store.SetCustomStatusPropertyName,
-			TrueButtonMessage:    "Yes - set my Mattermost custom status to :calendar: automatically",
-			FalseButtonMessage:   "No, don't set a custom status",
-			TrueResponseMessage:  "We'll set a Mattermost custom status automatically when you're in a meeting.",
-			FalseResponseMessage: "We won't set a Mattermost custom status when you're in a meeting.",
+			TrueButtonMessage:    "예 - 자동으로 Mattermost 사용자 정의 상태를 :calendar:로 설정",
+			FalseButtonMessage:   "아니요, 사용자 정의 상태를 설정하지 않음",
+			TrueResponseMessage:  "회의 중일 때 자동으로 Mattermost 사용자 정의 상태를 설정합니다.",
+			FalseResponseMessage: "회의 중일 때 Mattermost 사용자 정의 상태를 설정하지 않습니다.",
 		},
 		// &flow.SimpleStep{
-		// 	Title:                "Confirm status change",
-		// 	Message:              "Do you want to receive confirmations before we update your status for each event?",
+		// 	Title:                "상태 변경 확인",
+		// 	Message:              "각 이벤트에 대해 상태를 업데이트하기 전에 확인을 받으시겠습니까?",
 		// 	PropertyName:         store.GetConfirmationPropertyName,
-		// 	TrueButtonMessage:    "Yes - I would like to get confirmations",
-		// 	FalseButtonMessage:   "No - Update my status automatically",
-		// 	TrueResponseMessage:  "Cool, we'll also send you confirmations before updating your status.",
-		// 	FalseResponseMessage: "Cool, we'll update your status automatically with no confirmation.",
+		// 	TrueButtonMessage:    "예 - 확인을 받고 싶습니다",
+		// 	FalseButtonMessage:   "아니요 - 자동으로 상태를 업데이트",
+		// 	TrueResponseMessage:  "좋습니다. 상태를 업데이트하기 전에 확인을 보내드리겠습니다.",
+		// 	FalseResponseMessage: "좋습니다. 확인 없이 자동으로 상태를 업데이트하겠습니다.",
 		// },
 		// &flow.SimpleStep{
-		// 	Title:                "Status during meetings",
-		// 	Message:              "Do you want to set your status to `Away` or to `Do not Disturb` while you are on a meeting? Setting to `Do Not Disturb` will silence notifications.",
+		// 	Title:                "회의 중 상태",
+		// 	Message:              "회의 중일 때 상태를 `자리 비움`으로 설정하시겠습니까, 아니면 `방해 금지`로 설정하시겠습니까? `방해 금지`로 설정하면 알림이 무음됩니다.",
 		// 	PropertyName:         store.ReceiveNotificationsDuringMeetingName,
-		// 	TrueButtonMessage:    "Away",
-		// 	FalseButtonMessage:   "Do not Disturb",
-		// 	TrueResponseMessage:  "Great, your status will be set to Away.",
-		// 	FalseResponseMessage: "Great, your status will be set to Do not Disturb.",
+		// 	TrueButtonMessage:    "자리 비움",
+		// 	FalseButtonMessage:   "방해 금지",
+		// 	TrueResponseMessage:  "좋습니다. 상태가 자리 비움으로 설정됩니다.",
+		// 	FalseResponseMessage: "좋습니다. 상태가 방해 금지로 설정됩니다.",
 		// },
 	}
 
 	if wf.providerFeatures.EventNotifications {
 		steps = append(steps, &flow.SimpleStep{
-			Title:                "Subscribe to events",
-			Message:              "Do you want to receive notifications when you are invited to an event?",
+			Title:                "이벤트 구독",
+			Message:              "이벤트에 초대받을 때 알림을 받으시겠습니까?",
 			PropertyName:         store.SubscribePropertyName,
-			TrueButtonMessage:    "Yes - I would like to receive notifications for new events",
-			FalseButtonMessage:   "No - Do not notify me of new events",
-			TrueResponseMessage:  "Great, you will receive a message any time you receive a new event.",
-			FalseResponseMessage: "Great, you will not receive any notification on new events.",
+			TrueButtonMessage:    "예 - 새 이벤트에 대한 알림을 받고 싶습니다",
+			FalseButtonMessage:   "아니요 - 새 이벤트 알림을 받지 않겠습니다",
+			TrueResponseMessage:  "좋습니다. 새 이벤트를 받을 때마다 메시지를 받게 됩니다.",
+			FalseResponseMessage: "좋습니다. 새 이벤트에 대한 알림을 받지 않습니다.",
 		})
 	}
 
 	steps = append(steps, &flow.SimpleStep{
-		Title:                "Receive reminder",
-		Message:              "Do you want to receive a reminder for upcoming events?",
+		Title:                "미리 알림 받기",
+		Message:              "예정된 이벤트에 대한 미리 알림을 받으시겠습니까?",
 		PropertyName:         store.ReceiveUpcomingEventReminderName,
-		TrueButtonMessage:    "Yes - I would like to receive reminders for upcoming events",
-		FalseButtonMessage:   "No - Do not notify me of upcoming events",
-		TrueResponseMessage:  "Great, you will receive a message before your meetings.",
-		FalseResponseMessage: "Great, you will not receive any notification for upcoming events.",
+		TrueButtonMessage:    "예 - 예정된 이벤트에 대한 미리 알림을 받고 싶습니다",
+		FalseButtonMessage:   "아니요 - 예정된 이벤트 알림을 받지 않겠습니다",
+		TrueResponseMessage:  "좋습니다. 회의 전에 메시지를 받게 됩니다.",
+		FalseResponseMessage: "좋습니다. 예정된 이벤트에 대한 알림을 받지 않습니다.",
 	}, &flow.EmptyStep{
-		Title:   "Daily Summary",
-		Message: fmt.Sprintf("Remember that you can set-up a daily summary by typing `/%s summary time 8:00AM` or using `/%s settings` to access the settings.", config.Provider.CommandTrigger, config.Provider.CommandTrigger),
+		Title:   "일일 요약",
+		Message: fmt.Sprintf("`/%s summary time 8:00AM`을 입력하거나 `/%s settings`를 사용하여 설정에 액세스하여 일일 요약을 설정할 수 있습니다.", config.Provider.CommandTrigger, config.Provider.CommandTrigger),
 	})
 
 	wf.steps = steps
