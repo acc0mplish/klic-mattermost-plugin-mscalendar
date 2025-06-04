@@ -26,7 +26,7 @@ func (s *pluginStore) SetSetting(userID, settingID string, value interface{}) er
 	case UpdateStatusFromOptionsSettingID:
 		storableValue, ok := value.(string)
 		if !ok {
-			return fmt.Errorf("cannot read value %v for setting %s (expecting string)", value, settingID)
+			return fmt.Errorf("설정 %s에 대한 값 %v를 읽을 수 없습니다 (문자열 필요)", settingID, value)
 		}
 
 		user.Settings.UpdateStatusFromOptions = storableValue
@@ -36,25 +36,25 @@ func (s *pluginStore) SetSetting(userID, settingID string, value interface{}) er
 	case GetConfirmationSettingID:
 		storableValue, ok := value.(bool)
 		if !ok {
-			return fmt.Errorf("cannot read value %v for setting %s (expecting bool)", value, settingID)
+			return fmt.Errorf("설정 %s에 대한 값 %v를 읽을 수 없습니다 (불린 필요)", settingID, value)
 		}
 		user.Settings.GetConfirmation = storableValue
 	case SetCustomStatusSettingID:
 		storableValue, ok := value.(bool)
 		if !ok {
-			return fmt.Errorf("cannot read value %v for setting %s (expecting bool)", value, settingID)
+			return fmt.Errorf("설정 %s에 대한 값 %v를 읽을 수 없습니다 (불린 필요)", settingID, value)
 		}
 		user.Settings.SetCustomStatus = storableValue
 	case ReceiveRemindersSettingID:
 		storableValue, ok := value.(bool)
 		if !ok {
-			return fmt.Errorf("cannot read value %v for setting %s (expecting bool)", value, settingID)
+			return fmt.Errorf("설정 %s에 대한 값 %v를 읽을 수 없습니다 (불린 필요)", settingID, value)
 		}
 		user.Settings.ReceiveReminders = storableValue
 	case DailySummarySettingID:
 		s.updateDailySummarySettingForUser(user, value)
 	default:
-		return fmt.Errorf("setting %s not found", settingID)
+		return fmt.Errorf("설정 %s를 찾을 수 없습니다", settingID)
 	}
 
 	err = s.StoreUser(user)
@@ -84,14 +84,13 @@ func (s *pluginStore) GetSetting(userID, settingID string) (interface{}, error) 
 		dsum := user.Settings.DailySummary
 		return dsum, nil
 	default:
-		return nil, fmt.Errorf("setting %s not found", settingID)
+		return nil, fmt.Errorf("설정 %s를 찾을 수 없습니다", settingID)
 	}
 }
 
 func DefaultDailySummaryUserSettings() *DailySummaryUserSettings {
 	return &DailySummaryUserSettings{
 		PostTime: "8:00AM",
-
 		Timezone: "Eastern Standard Time",
 		Enable:   false,
 	}
