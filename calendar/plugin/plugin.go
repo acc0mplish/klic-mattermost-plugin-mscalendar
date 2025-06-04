@@ -68,22 +68,22 @@ func (p *Plugin) OnActivate() error {
 	stored := config.StoredConfig{}
 	err := p.API.LoadPluginConfiguration(&stored)
 	if err != nil {
-		return errors.WithMessage(err, "failed to load plugin configuration")
+		return errors.WithMessage(err, "플러그인 구성 로드에 실패했습니다")
 	}
 
 	mattermostSiteURL := pluginAPIClient.Configuration.GetConfig().ServiceSettings.SiteURL
 	if mattermostSiteURL == nil {
-		return errors.New("please configure the Mattermost server's SiteURL, then restart the plugin")
+		return errors.New("Mattermost 서버의 SiteURL을 구성한 후 플러그인을 다시 시작해주세요")
 	}
 
 	if errConfig := p.env.Remote.CheckConfiguration(stored); errConfig != nil {
-		return errors.Wrap(errConfig, "failed to configure")
+		return errors.Wrap(errConfig, "구성에 실패했습니다")
 	}
 
 	p.initEnv(&p.env, "")
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
-		return errors.Wrap(err, "couldn't get bundle path")
+		return errors.Wrap(err, "번들 경로를 가져올 수 없습니다")
 	}
 	err = p.loadTemplates(bundlePath)
 	if err != nil {
@@ -92,16 +92,16 @@ func (p *Plugin) OnActivate() error {
 
 	err = command.Register(pluginAPIClient)
 	if err != nil {
-		return errors.Wrap(err, "failed to register command")
+		return errors.Wrap(err, "명령어 등록에 실패했습니다")
 	}
 
-	// Telemetry client
+	// 텔레메트리 클라이언트
 	p.telemetryClient, err = telemetry.NewRudderClient()
 	if err != nil {
-		p.API.LogWarn("Telemetry client not started", "error", err.Error())
+		p.API.LogWarn("텔레메트리 클라이언트가 시작되지 않았습니다", "error", err.Error())
 	}
 
-	// Get config values
+	// 구성 값 가져오기
 	p.updateEnv(func(e *Env) {
 		e.Dependencies.Tracker = tracker.New(
 			telemetry.NewTracker(
@@ -126,14 +126,14 @@ func (p *Plugin) OnDeactivate() error {
 	if p.telemetryClient != nil {
 		err := p.telemetryClient.Close()
 		if err != nil {
-			p.env.Logger.Warnf("OnDeactivate: Failed to close telemetryClient. err=%v", err)
+			p.env.Logger.Warnf("OnDeactivate: 텔레메트리 클라이언트 종료에 실패했습니다. err=%v", err)
 		}
 	}
 
 	e := p.getEnv()
 	if e.jobManager != nil {
 		if err := e.jobManager.Close(); err != nil {
-			p.env.Logger.Warnf("OnDeactivate: Failed to close job manager. err=%v", err)
+			p.env.Logger.Warnf("OnDeactivate: 작업 관리자 종료에 실패했습니다. err=%v", err)
 			return err
 		}
 	}
@@ -151,12 +151,12 @@ func (p *Plugin) OnConfigurationChange() (err error) {
 	stored := config.StoredConfig{}
 	err = p.API.LoadPluginConfiguration(&stored)
 	if err != nil {
-		return errors.WithMessage(err, "failed to load plugin configuration")
+		return errors.WithMessage(err, "플러그인 구성 로드에 실패했습니다")
 	}
 
 	mattermostSiteURL := p.API.GetConfig().ServiceSettings.SiteURL
 	if mattermostSiteURL == nil {
-		return errors.New("plugin requires Mattermost Site URL to be set")
+		return errors.New("플러그인을 사용하려면 Mattermost Site URL을 설정해야 합니다")
 	}
 	mattermostURL, err := url.Parse(*mattermostSiteURL)
 	if err != nil {
@@ -181,7 +181,7 @@ func (p *Plugin) OnConfigurationChange() (err error) {
 
 		e.Dependencies.Logger = e.bot
 
-		// reload tracker behavior looking to some key config changes
+		// 주요 구성 변경 사항을 확인하여 트래커 동작 다시 로드
 		if e.Dependencies.Tracker != nil {
 			e.Dependencies.Tracker.ReloadConfig(p.API.GetConfig())
 		} else {
@@ -245,8 +245,8 @@ func (p *Plugin) OnConfigurationChange() (err error) {
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	env := p.getEnv()
 	if env.configError != nil {
-		p.API.LogError("Error occurred while getting env", "err", env.configError.Error())
-		return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "Unable to execute command.", nil, env.configError.Error(), http.StatusInternalServerError)
+		p.API.LogError("환경 가져오기 중 오류 발생", "err", env.configError.Error())
+		return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "명령어를 실행할 수 없습니다.", nil, env.configError.Error(), http.StatusInternalServerError)
 	}
 
 	cmd := command.Command{
@@ -258,8 +258,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 	out, mustRedirectToDM, err := cmd.Handle()
 	if err != nil {
-		p.API.LogError("Error occurred while running the command", "args", args, "err", err.Error())
-		return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "Unable to execute command.", nil, err.Error(), http.StatusInternalServerError)
+		p.API.LogError("명령어 실행 중 오류 발생", "args", args, "err", err.Error())
+		return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "명령어를 실행할 수 없습니다.", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if out != "" {
@@ -270,7 +270,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	if mustRedirectToDM {
 		t, appErr := p.API.GetTeam(args.TeamId)
 		if appErr != nil {
-			return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "Unable to execute command.", nil, appErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("mscalendarplugin.ExecuteCommand", "명령어를 실행할 수 없습니다.", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 		dmURL := fmt.Sprintf("%s/%s/messages/@%s",
 			env.MattermostSiteURL,
@@ -285,7 +285,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, req *http.Request) {
 	env := p.getEnv()
 	if env.configError != nil {
-		p.API.LogError("Error occurred while getting env", "err", env.configError.Error())
+		p.API.LogError("환경 가져오기 중 오류 발생", "err", env.configError.Error())
 		http.Error(w, env.configError.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -330,7 +330,7 @@ func (p *Plugin) loadTemplates(bundlePath string) error {
 		return nil
 	})
 	if err != nil {
-		return errors.WithMessage(err, "OnActivate/loadTemplates failed")
+		return errors.WithMessage(err, "OnActivate/loadTemplates 실패")
 	}
 	p.Templates = templates
 	return nil
@@ -350,7 +350,7 @@ func (p *Plugin) initEnv(e *Env, pluginURL string) error {
 			filepath.Join("assets", fmt.Sprintf("profile-%s.png", e.Provider.Name)),
 		)
 		if err != nil {
-			return errors.Wrap(err, "failed to ensure bot account")
+			return errors.Wrap(err, "봇 계정 확인에 실패했습니다")
 		}
 	}
 
