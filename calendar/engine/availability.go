@@ -83,9 +83,10 @@ func (m *mscalendar) SyncAll() (string, *StatusSyncJobSummary, error) {
 	return result, jobSummary, err
 }
 
-// retrieveUsersToSync retrieves the users and their calendar data to sync up and send notifications
-// The parameter fetchIndividually determines if the calendar data should be fetched while we loop the
-// users (using individual credentials) or on a batch after the loop.
+// retrieveUsersToSync는 동기화하고 알림을 보낼 사용자와 해당 캘린더 데이터를 검색합니다
+// fetchIndividually 매개변수는 사용자를 반복하는 동안 캘린더 데이터를 가져올지
+// (개별 자격 증명 사용) 아니면 반복 후 일괄적으로 가져올지를 결정합니다.
+
 func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSummary *StatusSyncJobSummary, fetchIndividually bool) ([]*store.User, []*remote.ViewCalendarResponse, error) {
 	start := time.Now().UTC()
 	end := time.Now().UTC().Add(calendarViewTimeWindowSize)
@@ -677,15 +678,16 @@ func getMergedEvents(events []*remote.Event) []*remote.Event {
 }
 
 /*
-areEventsMergeable function checks if two events can be merged into a single event.
-There are two conditions that are being checked in the function:
-  - If two events overlap, the end time of event1 will be
-    greater than or equal to event2 and we can merge those events into a single event.
-    For e.g.- event1: 1:01–1:04, event2: 1:03–1:05. Final event: 1:01–1:05.
-  - If the difference between event1 end time and event1 start time is less than or equal to StatusSyncJobInterval and the difference between event2 start time and event1 end time is less than or equal to StatusSyncJobInterval. This is done to merge those events that occur within the time span of StatusSyncJobInterval.
-    For e.g.- event1: 1:01–1:02, event2: 1:03–1:05, StatusSyncJobInterval: 5 mins. Final event: 1:01–1:05.
-    This is done to avoid skipping of event2 as both events are fetched together in a single API call when the job runs every 5 minutes.
+areEventsMergeable 함수는 두 이벤트를 하나의 이벤트로 병합할 수 있는지 확인합니다.
+이 함수에서 확인하는 두 가지 조건이 있습니다:
+  - 두 이벤트가 겹치는 경우, event1의 종료 시간이 event2의 시작 시간보다
+    크거나 같으면 이러한 이벤트들을 하나의 이벤트로 병합할 수 있습니다.
+    예: event1: 1:01–1:04, event2: 1:03–1:05. 최종 이벤트: 1:01–1:05.
+  - event1 종료 시간과 event1 시작 시간의 차이가 StatusSyncJobInterval보다 작거나 같고, event2 시작 시간과 event1 종료 시간의 차이가 StatusSyncJobInterval보다 작거나 같은 경우. 이는 StatusSyncJobInterval 시간 범위 내에서 발생하는 이벤트들을 병합하기 위해 수행됩니다.
+    예: event1: 1:01–1:02, event2: 1:03–1:05, StatusSyncJobInterval: 5분. 최종 이벤트: 1:01–1:05.
+    이는 작업이 5분마다 실행될 때 두 이벤트가 단일 API 호출에서 함께 가져오므로 event2를 건너뛰는 것을 방지하기 위해 수행됩니다.
 */
+
 func areEventsMergeable(event1, event2 *remote.Event) bool {
 	return (event1.End.Time().UnixMicro() >= event2.Start.Time().UnixMicro()) || (event1.End.Time().Sub(event1.Start.Time()) <= StatusSyncJobInterval && event2.Start.Time().Sub(event1.End.Time()) <= StatusSyncJobInterval)
 }
