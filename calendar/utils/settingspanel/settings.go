@@ -75,7 +75,7 @@ func NewSettingsPanel(settings []Setting, poster bot.Poster, logger bot.Logger, 
 func (p *panel) Set(userID, settingID string, value interface{}) error {
 	s, ok := p.settings[settingID]
 	if !ok {
-		return errors.New("cannot find setting " + settingID)
+		return errors.New("설정을 찾을 수 없습니다: " + settingID)
 	}
 
 	err := s.Set(userID, value)
@@ -96,7 +96,7 @@ func (p *panel) URL() string {
 func (p *panel) Print(userID string) {
 	err := p.cleanPreviousSettingsPosts(userID)
 	if err != nil {
-		p.logger.Warnf("could not clean previous setting post. err=%v", err)
+		p.logger.Warnf("이전 설정 게시물을 정리할 수 없습니다. err=%v", err)
 	}
 
 	sas := []*model.SlackAttachment{}
@@ -104,20 +104,20 @@ func (p *panel) Print(userID string) {
 		s := p.settings[key]
 		sa, loopErr := s.GetSlackAttachments(userID, p.pluginURL+p.settingHandler, p.isSettingDisabled(userID, s))
 		if loopErr != nil {
-			p.logger.Warnf("error creating the slack attachment. err=%v", loopErr)
+			p.logger.Warnf("슬랙 첨부파일 생성 중 오류가 발생했습니다. err=%v", loopErr)
 			continue
 		}
 		sas = append(sas, sa)
 	}
 	postID, err := p.poster.DMWithAttachments(userID, sas...)
 	if err != nil {
-		p.logger.Warnf("error creating the message. err=%v", err)
+		p.logger.Warnf("메시지 생성 중 오류가 발생했습니다. err=%v", err)
 		return
 	}
 
 	err = p.store.SetPanelPostID(userID, postID)
 	if err != nil {
-		p.logger.Warnf("could not set the post IDs. err=%v", err)
+		p.logger.Warnf("게시물 ID를 설정할 수 없습니다. err=%v", err)
 	}
 }
 
@@ -129,7 +129,7 @@ func (p *panel) ToPost(userID string) (*model.Post, error) {
 		s := p.settings[key]
 		sa, err := s.GetSlackAttachments(userID, p.pluginURL+p.settingHandler, p.isSettingDisabled(userID, s))
 		if err != nil {
-			p.logger.Warnf("error creating the slack attachment for setting %s. err=%v", s.GetID(), err)
+			p.logger.Warnf("설정 %s에 대한 슬랙 첨부파일 생성 중 오류가 발생했습니다. err=%v", s.GetID(), err)
 			continue
 		}
 		sas = append(sas, sa)
@@ -151,7 +151,7 @@ func (p *panel) cleanPreviousSettingsPosts(userID string) error {
 
 	err = p.poster.DeletePost(postID)
 	if err != nil {
-		p.logger.Warnf("could not delete setting post. err=%v", err)
+		p.logger.Warnf("설정 게시물을 삭제할 수 없습니다. err=%v", err)
 	}
 
 	err = p.store.DeletePanelPostID(userID)
@@ -173,13 +173,13 @@ func (p *panel) isSettingDisabled(userID string, s Setting) bool {
 	}
 	dependency, ok := p.settings[dependencyID]
 	if !ok {
-		p.logger.Warnf("settings dependency %s not found", dependencyID)
+		p.logger.Warnf("설정 종속성 %s를 찾을 수 없습니다", dependencyID)
 		return false
 	}
 
 	value, err := dependency.Get(userID)
 	if err != nil {
-		p.logger.Warnf("cannot get dependency %s value. err=%v", dependencyID, err)
+		p.logger.Warnf("종속성 %s 값을 가져올 수 없습니다. err=%v", dependencyID, err)
 		return false
 	}
 	return s.IsDisabled(value)
