@@ -44,7 +44,7 @@ func ShowTimezoneOption(timezone string) Option {
 
 func RenderCalendarView(events []*remote.Event, timeZone string) (string, error) {
 	if len(events) == 0 {
-		return "You have no upcoming events.", nil
+		return "예정된 이벤트가 없습니다.", nil
 	}
 
 	if timeZone != "" {
@@ -58,9 +58,9 @@ func RenderCalendarView(events []*remote.Event, timeZone string) (string, error)
 		return events[i].Start.Time().Before(events[j].Start.Time())
 	})
 
-	resp := "Times are shown in " + events[0].Start.TimeZone
+	resp := "시간은 " + events[0].Start.TimeZone + "로 표시됩니다"
 	for _, group := range groupEventsByDate(events) {
-		resp += "\n" + group[0].Start.Time().Format("Monday January 02, 2006") + "\n\n"
+		resp += "\n" + group[0].Start.Time().Format("Monday June 02, 2025") + "\n\n"
 		resp += renderTableHeader()
 		for _, e := range group {
 			eventString, err := renderEvent(e, true, timeZone)
@@ -76,7 +76,7 @@ func RenderCalendarView(events []*remote.Event, timeZone string) (string, error)
 
 func RenderDaySummary(events []*remote.Event, timezone string) (string, []*model.SlackAttachment, error) {
 	if len(events) == 0 {
-		return "You have no events for that day", nil, nil
+		return "해당 날짜에 이벤트가 없습니다", nil, nil
 	}
 
 	if timezone != "" {
@@ -86,7 +86,7 @@ func RenderDaySummary(events []*remote.Event, timezone string) (string, []*model
 		}
 	}
 
-	message := fmt.Sprintf("Agenda for %s.\nTimes are shown in %s", events[0].Start.Time().Format("Monday, 02 January"), events[0].Start.TimeZone)
+	message := fmt.Sprintf("%s 일정입니다.\n시간은 %s로 표시됩니다", events[0].Start.Time().Format("Monday, 02 January"), events[0].Start.TimeZone)
 
 	var attachments []*model.SlackAttachment
 	for _, event := range events {
@@ -95,7 +95,7 @@ func RenderDaySummary(events []*remote.Event, timezone string) (string, []*model
 		fields := []*model.SlackAttachmentField{}
 		if event.Location != nil && event.Location.DisplayName != "" {
 			fields = append(fields, &model.SlackAttachmentField{
-				Title: "Location",
+				Title: "위치",
 				Value: event.Location.DisplayName,
 				Short: true,
 			})
@@ -114,7 +114,7 @@ func RenderDaySummary(events []*remote.Event, timezone string) (string, []*model
 }
 
 func renderTableHeader() string {
-	return `| Time | Subject |
+	return `| 시간 | 제목 |
 | :-- | :-- |`
 }
 
@@ -162,9 +162,9 @@ func renderEvent(event *remote.Event, asRow bool, timeZone string) (string, erro
 	subject := EnsureSubject(event.Subject)
 
 	if event.IsAllDay {
-		format := "(All day event) [%s](%s)"
+		format := "(종일 이벤트) [%s](%s)"
 		if asRow {
-			format = "| All day event | [%s](%s) |"
+			format = "| 종일 이벤트 | [%s](%s) |"
 		}
 
 		return fmt.Sprintf(format, MarkdownToHTMLEntities(subject), link), nil
@@ -188,7 +188,7 @@ func RenderEventAsAttachment(event *remote.Event, timezone string, options ...Op
 
 	if event.Location != nil && event.Location.DisplayName != "" {
 		fields = append(fields, &model.SlackAttachmentField{
-			Title: "Location",
+			Title: "위치",
 			Value: event.Location.DisplayName,
 			Short: true,
 		})
@@ -198,7 +198,7 @@ func RenderEventAsAttachment(event *remote.Event, timezone string, options ...Op
 		// Use conference URL as title link if there's conference data present
 		titleLink = event.Conference.URL
 
-		title := "Meeting URL"
+		title := "회의 URL"
 		if event.Conference.Application != "" {
 			title = event.Conference.Application
 		}
@@ -230,7 +230,7 @@ func groupEventsByDate(events []*remote.Event) [][]*remote.Event {
 	groups := map[string][]*remote.Event{}
 
 	for _, event := range events {
-		date := event.Start.Time().Format("2006-01-02")
+		date := event.Start.Time().Format("2025-06-02")
 		_, ok := groups[date]
 		if !ok {
 			groups[date] = []*remote.Event{}
@@ -254,7 +254,7 @@ func groupEventsByDate(events []*remote.Event) [][]*remote.Event {
 }
 
 func RenderUpcomingEvent(event *remote.Event, timeZone string) (string, error) {
-	message := "You have an upcoming event:\n"
+	message := "예정된 이벤트가 있습니다:\n"
 	eventString, err := renderEvent(event, false, timeZone)
 	if err != nil {
 		return "", err
@@ -265,14 +265,14 @@ func RenderUpcomingEvent(event *remote.Event, timeZone string) (string, error) {
 
 func EnsureSubject(s string) string {
 	if s == "" {
-		return "(No subject)"
+		return "(제목 없음)"
 	}
 
 	return s
 }
 
 func RenderUpcomingEventAsAttachment(event *remote.Event, timeZone string, options ...Option) (message string, attachment *model.SlackAttachment, err error) {
-	message = "Upcoming event:\n"
+	message = "예정된 이벤트:\n"
 	attachment, err = RenderEventAsAttachment(event, timeZone, options...)
 	return message, attachment, err
 }
