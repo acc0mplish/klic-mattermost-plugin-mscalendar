@@ -27,10 +27,10 @@ const (
 	MockMMUserDisplayName = "testMMUserDisplayName"
 	MockRemoteID          = "testRemoteID"
 
-	MockCalendarName = "Test Calendar"
+	MockCalendarName = "테스트 캘린더"
 	MockCalendarID   = "testCalendarID"
 
-	MockEventName           = "Test Event"
+	MockEventName           = "테스트 이벤트"
 	MockEventID             = "testEventID"
 	MockEventSubscriptionID = "testEventSubscriptionID"
 
