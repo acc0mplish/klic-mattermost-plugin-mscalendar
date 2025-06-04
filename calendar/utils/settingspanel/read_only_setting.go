@@ -39,7 +39,7 @@ func (s *readOnlySetting) Get(userID string) (interface{}, error) {
 	}
 	stringValue, ok := value.(string)
 	if !ok {
-		return "", errors.New("current value is not a string")
+		return "", errors.New("현재 값이 문자열이 아닙니다")
 	}
 
 	return stringValue, nil
@@ -62,15 +62,15 @@ func (s *readOnlySetting) GetDependency() string {
 }
 
 func (s *readOnlySetting) GetSlackAttachments(userID, _ string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	title := fmt.Sprintf("설정: %s", s.title)
+	currentValueMessage := "비활성화됨"
 
 	if !disabled {
 		currentValue, err := s.Get(userID)
 		if err != nil {
 			return nil, err
 		}
-		currentValueMessage = fmt.Sprintf("**Current value:** %s", currentValue)
+		currentValueMessage = fmt.Sprintf("**현재 값:** %s", currentValue)
 	}
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
