@@ -24,45 +24,45 @@
         "settings": [
             {
                 "key": "AdminUserIDs",
-                "display_name": "Admin User IDs:",
+                "display_name": "관리자 사용자 ID:",
                 "type": "text",
-                "help_text": "List of users authorized to administer the plugin in addition to the System Admins. Must be a comma-separated list of user IDs.\n \n User IDs can be found in **System Console \u003e User Management \u003e Users**. Select the user's name, and the ID is displayed in the top-right corner of the banner.",
+                "help_text": "시스템 관리자 외에 플러그인을 관리할 권한이 있는 사용자 목록입니다. 사용자 ID를 쉼표로 구분한 목록이어야 합니다.\n \n 사용자 ID는 **시스템 콘솔 > 사용자 관리 > 사용자**에서 찾을 수 있습니다. 사용자 이름을 선택하면 배너의 오른쪽 상단에 ID가 표시됩니다.",
                 "placeholder": "",
                 "default": null
             },
             {
                 "key": "AdminLogLevel",
-                "display_name": "Copy plugin logs to admins, as bot messages:",
+                "display_name": "플러그인 로그를 관리자에게 봇 메시지로 복사:",
                 "type": "dropdown",
-                "help_text": "Select the log level.",
+                "help_text": "로그 레벨을 선택하세요.",
                 "placeholder": "",
                 "default": "none",
                 "options": [
                     {
-                        "display_name": "None",
+                        "display_name": "없음",
                         "value": "none"
                     },
                     {
-                        "display_name": "Debug",
+                        "display_name": "디버그",
                         "value": "debug"
                     },
                     {
-                        "display_name": "Info",
+                        "display_name": "정보",
                         "value": "info"
                     },
                     {
-                        "display_name": "Warning",
+                        "display_name": "경고",
                         "value": "warn"
                     },
                     {
-                        "display_name": "Error",
+                        "display_name": "오류",
                         "value": "error"
                     }
                 ]
             },
             {
                 "key": "AdminLogVerbose",
-                "display_name": "Display full context for each admin log message:",
+                "display_name": "각 관리자 로그 메시지에 대한 전체 컨텍스트 표시:",
                 "type": "bool",
                 "help_text": "",
                 "placeholder": "",
@@ -70,25 +70,25 @@
             },
             {
                 "key": "OAuth2Authority",
-                "display_name": "Azure Directory (tenant) ID:",
+                "display_name": "Azure 디렉터리 (테넌트) ID:",
                 "type": "text",
-                "help_text": "Directory (tenant) ID.",
+                "help_text": "디렉터리 (테넌트) ID.",
                 "placeholder": "",
                 "default": null
             },
             {
                 "key": "OAuth2ClientId",
-                "display_name": "Azure Application (client) ID:",
+                "display_name": "Azure 애플리케이션 (클라이언트) ID:",
                 "type": "text",
-                "help_text": "Microsoft Office Client ID.",
+                "help_text": "Microsoft Office 클라이언트 ID.",
                 "placeholder": "",
                 "default": ""
             },
             {
                 "key": "OAuth2ClientSecret",
-                "display_name": "Microsoft Office Client Secret:",
+                "display_name": "Microsoft Office 클라이언트 시크릿:",
                 "type": "text",
-                "help_text": "Microsoft Office Client Secret.",
+                "help_text": "Microsoft Office 클라이언트 시크릿.",
                 "placeholder": "",
                 "default": "",
                 "secret": true
