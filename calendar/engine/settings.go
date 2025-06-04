@@ -22,7 +22,7 @@ func (m *mscalendar) PrintSettings(userID string) {
 func (m *mscalendar) ClearSettingsPosts(userID string) {
 	err := m.SettingsPanel.Clear(userID)
 	if err != nil {
-		m.Logger.Warnf("Error clearing settings posts. err=%v", err)
+		m.Logger.Warnf("설정 게시물 지우기 중 오류 발생. err=%v", err)
 	}
 }
 
@@ -30,8 +30,8 @@ func NewSettingsPanel(bot bot.Bot, panelStore settingspanel.PanelStore, settingS
 	settings := []settingspanel.Setting{}
 	settings = append(settings, settingspanel.NewOptionSetting(
 		store.UpdateStatusFromOptionsSettingID,
-		"Update Status",
-		"Do you want to update your status on Mattermost when you are in a meeting?",
+		"상태 업데이트",
+		"회의 중일 때 Mattermost에서 상태를 업데이트하시겠습니까?",
 		"",
 		store.NotSetStatusOption,
 		[]string{store.AwayStatusOption, store.DNDStatusOption, store.NotSetStatusOption},
@@ -39,22 +39,22 @@ func NewSettingsPanel(bot bot.Bot, panelStore settingspanel.PanelStore, settingS
 	))
 	settings = append(settings, settingspanel.NewBoolSetting(
 		store.GetConfirmationSettingID,
-		"Get Confirmation",
-		"Do you want to get a confirmation before automatically updating your status?",
+		"확인 받기",
+		"상태를 자동으로 업데이트하기 전에 확인을 받으시겠습니까?",
 		store.UpdateStatusFromOptionsSettingID,
 		settingStore,
 	))
 	settings = append(settings, settingspanel.NewBoolSetting(
 		store.SetCustomStatusSettingID,
-		"Set Custom Status",
-		"Do you want to set custom status automatically on Mattermost when you are in a meeting?",
+		"사용자 지정 상태 설정",
+		"회의 중일 때 Mattermost에서 사용자 지정 상태를 자동으로 설정하시겠습니까?",
 		"",
 		settingStore,
 	))
 	settings = append(settings, settingspanel.NewBoolSetting(
 		store.ReceiveRemindersSettingID,
-		"Receive Reminders",
-		"Do you want to receive reminders for upcoming events?",
+		"알림 받기",
+		"다가오는 이벤트에 대한 알림을 받으시겠습니까?",
 		"",
 		settingStore,
 	))
