@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	ConnectBotAlreadyConnectedTemplate = "The bot account is already connected to %s account `%s`. To connect to a different account, first run `/%s disconnect_bot`."
-	ConnectBotSuccessTemplate          = "[Click here to link the bot's %s account.](%s/oauth2/connect_bot)"
-	ConnectAlreadyConnectedTemplate    = "Your Mattermost account is already connected to %s account `%s`. To connect to a different account, first run `/%s disconnect`."
-	ConnectErrorMessage                = "There has been a problem while trying to connect. err="
+	ConnectBotAlreadyConnectedTemplate = "봇 계정이 이미 %s 계정 `%s`에 연결되어 있습니다. 다른 계정에 연결하려면 먼저 `/%s disconnect_bot`을 실행하세요."
+	ConnectBotSuccessTemplate          = "[봇의 %s 계정을 연결하려면 여기를 클릭하세요.](%s/oauth2/connect_bot)"
+	ConnectAlreadyConnectedTemplate    = "귀하의 Mattermost 계정이 이미 %s 계정 `%s`에 연결되어 있습니다. 다른 계정에 연결하려면 먼저 `/%s disconnect`를 실행하세요."
+	ConnectErrorMessage                = "연결을 시도하는 중에 문제가 발생했습니다. err="
 )
 
 func (c *Command) connect(_ ...string) (string, bool, error) {
