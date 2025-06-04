@@ -13,16 +13,16 @@ import (
 )
 
 func getDailySummaryHelp() string {
-	return "### Daily summary commands:\n" +
-		fmt.Sprintf("`/%s summary view` - View your daily summary\n", config.Provider.CommandTrigger) +
-		fmt.Sprintf("`/%s summary settings` - View your settings for the daily summary\n", config.Provider.CommandTrigger) +
-		fmt.Sprintf("`/%s summary time 8:00AM` - Set the time you would like to receive your daily summary\n", config.Provider.CommandTrigger) +
-		fmt.Sprintf("`/%s summary enable` - Enable your daily summary\n", config.Provider.CommandTrigger) +
-		fmt.Sprintf("`/%s summary disable` - Disable your daily summary", config.Provider.CommandTrigger)
+	return "### 일일 요약 명령어:\n" +
+		fmt.Sprintf("`/%s summary view` - 일일 요약 보기\n", config.Provider.CommandTrigger) +
+		fmt.Sprintf("`/%s summary settings` - 일일 요약 설정 보기\n", config.Provider.CommandTrigger) +
+		fmt.Sprintf("`/%s summary time 8:00AM` - 일일 요약을 받을 시간 설정\n", config.Provider.CommandTrigger) +
+		fmt.Sprintf("`/%s summary enable` - 일일 요약 활성화\n", config.Provider.CommandTrigger) +
+		fmt.Sprintf("`/%s summary disable` - 일일 요약 비활성화", config.Provider.CommandTrigger)
 }
 
 func getDailySummarySetTimeErrorMessage() string {
-	return fmt.Sprintf("Please enter a time, for example:\n`/%s summary time 8:00AM`", config.Provider.CommandTrigger)
+	return fmt.Sprintf("시간을 입력해주세요. 예시:\n`/%s summary time 8:00AM`", config.Provider.CommandTrigger)
 }
 
 func (c *Command) dailySummary(parameters ...string) (string, bool, error) {
@@ -74,7 +74,7 @@ func (c *Command) dailySummary(parameters ...string) (string, bool, error) {
 				return store.ErrorUserInactive, false, nil
 			}
 
-			return err.Error() + "\nYou may need to configure your daily summary using the commands below.\n" + getDailySummaryHelp(), false, nil
+			return err.Error() + "\n아래 명령어를 사용하여 일일 요약을 설정해야 할 수 있습니다.\n" + getDailySummaryHelp(), false, nil
 		}
 
 		return dailySummaryResponse(dsum), false, nil
@@ -92,17 +92,17 @@ func (c *Command) dailySummary(parameters ...string) (string, bool, error) {
 		}
 		return dailySummaryResponse(dsum), false, nil
 	}
-	return "Invalid command. Please try again\n\n" + getDailySummaryHelp(), false, nil
+	return "잘못된 명령어입니다. 다시 시도해주세요\n\n" + getDailySummaryHelp(), false, nil
 }
 
 func dailySummaryResponse(dsum *store.DailySummaryUserSettings) string {
 	if dsum.PostTime == "" {
-		return "Your daily summary time is not yet configured.\n" + getDailySummarySetTimeErrorMessage()
+		return "일일 요약 시간이 아직 설정되지 않았습니다.\n" + getDailySummarySetTimeErrorMessage()
 	}
 
 	enableStr := ""
 	if !dsum.Enable {
-		enableStr = fmt.Sprintf(", but is disabled. Enable it with `/%s summary enable`", config.Provider.CommandTrigger)
+		enableStr = fmt.Sprintf(", 하지만 비활성화되어 있습니다. `/%s summary enable`로 활성화할 수 있습니다", config.Provider.CommandTrigger)
 	}
-	return fmt.Sprintf("Your daily summary is configured to show at %s %s%s.", dsum.PostTime, dsum.Timezone, enableStr)
+	return fmt.Sprintf("일일 요약이 %s %s에 표시되도록 설정되어 있습니다%s.", dsum.PostTime, dsum.Timezone, enableStr)
 }
