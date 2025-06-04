@@ -31,10 +31,10 @@ const (
 )
 
 const (
-	OptionYes          = "Yes"
-	OptionNotResponded = "Not responded"
-	OptionNo           = "No"
-	OptionMaybe        = "Maybe"
+	OptionYes          = "예"
+	OptionNotResponded = "응답 안함"
+	OptionNo           = "아니오"
+	OptionMaybe        = "미정"
 )
 
 const (
@@ -83,7 +83,7 @@ func (processor *notificationProcessor) Enqueue(notifications ...*remote.Notific
 		select {
 		case processor.queue <- n:
 		default:
-			return fmt.Errorf("webhook notification: queue full, dropped notification")
+			return fmt.Errorf("웹훅 알림: 큐가 가득 참, 알림이 삭제됨")
 		}
 	}
 	return nil
@@ -105,7 +105,7 @@ func (processor *notificationProcessor) work() {
 			if err != nil {
 				processor.Logger.With(bot.LogContext{
 					"subscriptionID": n.SubscriptionID,
-				}).Infof("webhook notification: failed: `%v`.", err)
+				}).Infof("웹훅 알림: 실패: `%v`.", err)
 			}
 
 		case env := <-processor.envChan:
@@ -127,10 +127,10 @@ func (processor *notificationProcessor) processNotification(n *remote.Notificati
 		return err
 	}
 	if sub.Remote.ID != creator.Settings.EventSubscriptionID {
-		return errors.New("subscription is orphaned")
+		return errors.New("구독이 관리되지않고 방치 상태입니다")
 	}
 	if sub.Remote.ClientState != "" && sub.Remote.ClientState != n.ClientState {
-		return errors.New("unauthorized webhook")
+		return errors.New("승인되지 않은 웹훅")
 	}
 
 	n.Subscription = sub.Remote
@@ -157,7 +157,7 @@ func (processor *notificationProcessor) processNotification(n *remote.Notificati
 		processor.Logger.With(bot.LogContext{
 			"MattermostUserID": creator.MattermostUserID,
 			"SubscriptionID":   n.SubscriptionID,
-		}).Debugf("webhook notification: renewed user subscription.")
+		}).Debugf("웹훅 알림: 사용자 구독이 갱신되었습니다.")
 	}
 
 	if n.IsBare {
@@ -189,7 +189,7 @@ func (processor *notificationProcessor) processNotification(n *remote.Notificati
 				"ChangeType":       n.ChangeType,
 				"EventID":          n.Event.ID,
 				"EventICalUID":     n.Event.ICalUID,
-			}).Debugf("webhook notification: no changes detected in event.")
+			}).Debugf("웹훅 알림: 이벤트에서 변경사항이 감지되지 않았습니다.")
 			return nil
 		}
 	} else {
@@ -211,7 +211,7 @@ func (processor *notificationProcessor) processNotification(n *remote.Notificati
 	processor.Logger.With(bot.LogContext{
 		"MattermostUserID": creator.MattermostUserID,
 		"SubscriptionID":   n.SubscriptionID,
-	}).Debugf("Notified: %s.", sa.Title)
+	}).Debugf("알림 전송됨: %s.", sa.Title)
 
 	return nil
 }
