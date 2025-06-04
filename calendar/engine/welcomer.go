@@ -34,7 +34,7 @@ type mscBot struct {
 }
 
 const (
-	WelcomeMessage = `Welcome to the %s plugin. [Click here to link your account.](%s/oauth2/connect)`
+	WelcomeMessage = `%s 플러그인에 오신 것을 환영합니다. [계정을 연결하려면 여기를 클릭하세요.](%s/oauth2/connect)`
 )
 
 func (m *mscalendar) Welcome(userID string) error {
@@ -80,7 +80,7 @@ func (bot *mscBot) AfterSuccessfullyConnect(userID, userLogin string) error {
 	bot.Tracker.TrackUserAuthenticated(userID)
 	postID, err := bot.Store.DeleteUserWelcomePost(userID)
 	if err != nil {
-		bot.Errorf("error deleting user's welcome post id, err=%v", err)
+		bot.Errorf("사용자의 환영 게시물 ID 삭제 중 오류 발생, err=%v", err)
 	}
 	if postID != "" {
 		post := &model.Post{
@@ -115,7 +115,7 @@ func (bot *mscBot) WelcomeFlowEnd(userID string) {
 }
 
 func (bot *mscBot) newConnectAttachment() *model.SlackAttachment {
-	title := "Connect"
+	title := "연결"
 	text := fmt.Sprintf(WelcomeMessage, bot.Provider.DisplayName, bot.pluginURL)
 	sa := model.SlackAttachment{
 		Title:    title,
@@ -127,8 +127,8 @@ func (bot *mscBot) newConnectAttachment() *model.SlackAttachment {
 }
 
 func (bot *mscBot) newConnectedAttachment(userLogin string) *model.SlackAttachment {
-	title := "Connect"
-	text := ":tada: Congratulations! Your " + bot.Provider.DisplayName + " account (*" + userLogin + "*) has been connected to Mattermost."
+	title := "연결"
+	text := ":tada: 축하합니다! " + bot.Provider.DisplayName + " 계정(*" + userLogin + "*)이 Mattermost에 연결되었습니다."
 	return &model.SlackAttachment{
 		Title:    title,
 		Text:     text,
@@ -137,7 +137,7 @@ func (bot *mscBot) newConnectedAttachment(userLogin string) *model.SlackAttachme
 }
 
 func (bot *mscBot) notifySettings(userID string) error {
-	_, err := bot.DM(userID, "Feel free to change these settings anytime by typing `/%s settings`", config.Provider.CommandTrigger)
+	_, err := bot.DM(userID, "`/%s settings`를 입력하여 언제든지 이 설정을 변경할 수 있습니다", config.Provider.CommandTrigger)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (bot *mscBot) cleanWelcomePost(mattermostUserID string) error {
 	if postID != "" {
 		err = bot.DeletePost(postID)
 		if err != nil {
-			bot.Errorf("Error deleting post. err=%v", err)
+			bot.Errorf("게시물 삭제 중 오류 발생. err=%v", err)
 		}
 	}
 	return nil
@@ -164,7 +164,7 @@ func (bot *mscBot) SetProperty(userID, propertyName string, value interface{}) e
 		if boolValue, _ := value.(bool); boolValue {
 			m := New(bot.Env, userID)
 			_, err := m.LoadMyEventSubscription()
-			if err == nil { // Subscription found
+			if err == nil { // 구독을 찾음
 				return nil
 			}
 
