@@ -19,7 +19,7 @@ import (
 
 const dailySummaryTimeWindow = time.Minute * 2
 
-// Run daily summary job every 15 minutes
+// 일일 요약 작업을 15분마다 실행
 const DailySummaryJobInterval = 15 * time.Minute
 
 type DailySummary interface {
@@ -49,11 +49,11 @@ func (m *mscalendar) SetDailySummaryPostTime(user *User, timeStr string) (*store
 
 	t, err := time.Parse(time.Kitchen, timeStr)
 	if err != nil {
-		return nil, errors.New("Invalid time value: " + timeStr)
+		return nil, errors.New("잘못된 시간 값: " + timeStr)
 	}
 
 	if t.Minute()%int(DailySummaryJobInterval/time.Minute) != 0 {
-		return nil, fmt.Errorf("time must be a multiple of %d minutes", DailySummaryJobInterval/time.Minute)
+		return nil, fmt.Errorf("시간은 %d분의 배수여야 합니다", DailySummaryJobInterval/time.Minute)
 	}
 
 	timezone, err := m.GetTimezone(user)
@@ -118,7 +118,7 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 	for _, user := range userIndex {
 		storeUser, storeErr := m.Store.LoadUser(user.MattermostUserID)
 		if storeErr != nil {
-			m.Logger.Warnf("Error loading user %s for daily summary. err=%v", user.MattermostUserID, storeErr)
+			m.Logger.Warnf("일일 요약을 위한 사용자 %s 로드 오류. err=%v", user.MattermostUserID, storeErr)
 			continue
 		}
 		byRemoteID[storeUser.Remote.ID] = storeUser
@@ -130,7 +130,7 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 
 		shouldPost, shouldPostErr := shouldPostDailySummary(dsum, now)
 		if shouldPostErr != nil {
-			m.Logger.With(bot.LogContext{"mm_user_id": storeUser.MattermostUserID, "now": now.String(), "err": shouldPostErr}).Warnf("Error checking daily summary should be posted")
+			m.Logger.With(bot.LogContext{"mm_user_id": storeUser.MattermostUserID, "now": now.String(), "err": shouldPostErr}).Warnf("일일 요약 게시 여부 확인 오류")
 			continue
 		}
 		if !shouldPost {
@@ -144,19 +144,19 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 					"mattermost_id": storeUser.MattermostUserID,
 					"remote_id":     storeUser.Remote.ID,
 					"err":           err,
-				}).Errorf("error getting user information")
+				}).Errorf("사용자 정보 가져오기 오류")
 				continue
 			}
 
 			engine, err := m.FilterCopy(withActingUser(storeUser.MattermostUserID))
 			if err != nil {
-				m.Logger.Errorf("Error creating user engine %s. err=%v", storeUser.MattermostUserID, err)
+				m.Logger.Errorf("사용자 엔진 생성 오류 %s. err=%v", storeUser.MattermostUserID, err)
 				continue
 			}
 
 			timezone, err := engine.GetTimezone(u)
 			if err != nil {
-				m.Logger.With(bot.LogContext{"mm_user_id": storeUser.MattermostUserID, "err": err}).Errorf("Error getting timezone for user.")
+				m.Logger.With(bot.LogContext{"mm_user_id": storeUser.MattermostUserID, "err": err}).Errorf("사용자 시간대 가져오기 오류.")
 				continue
 			}
 
@@ -167,7 +167,7 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 					"now":        now.String(),
 					"tz":         timezone,
 					"err":        err,
-				}).Errorf("Error getting calendar events for user")
+				}).Errorf("사용자 캘린더 이벤트 가져오기 오류")
 				continue
 			}
 
@@ -198,16 +198,16 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 	for _, res := range calendarViews {
 		user := byRemoteID[res.RemoteUserID]
 		if res.Error != nil {
-			m.Logger.Warnf("Error rendering user %s calendar. err=%s %s", user.MattermostUserID, res.Error.Code, res.Error.Message)
+			m.Logger.Warnf("사용자 %s 캘린더 렌더링 오류. err=%s %s", user.MattermostUserID, res.Error.Code, res.Error.Message)
 		}
 		dsum := user.Settings.DailySummary
 		if dsum == nil {
-			// Should never reach this point
+			// 이 지점에 도달해서는 안 됨
 			continue
 		}
 		postStr, err := views.RenderCalendarView(res.Events, dsum.Timezone)
 		if err != nil {
-			m.Logger.Warnf("Error rendering user %s calendar. err=%v", user.MattermostUserID, err)
+			m.Logger.Warnf("사용자 %s 캘린더 렌더링 오류. err=%v", user.MattermostUserID, err)
 		}
 
 		m.Poster.DM(user.MattermostUserID, postStr)
@@ -216,11 +216,11 @@ func (m *mscalendar) ProcessAllDailySummary(now time.Time) error {
 		dsum.LastPostTime = time.Now().Format(time.RFC3339)
 		err = m.Store.StoreUser(user)
 		if err != nil {
-			m.Logger.Warnf("Error storing daily summary LastPostTime for user %s. err=%v", user.MattermostUserID, err)
+			m.Logger.Warnf("사용자 %s의 일일 요약 LastPostTime 저장 오류. err=%v", user.MattermostUserID, err)
 		}
 	}
 
-	m.Logger.Infof("Processed daily summary for %d users", len(calendarViews))
+	m.Logger.Infof("%d명의 사용자에 대한 일일 요약 처리 완료", len(calendarViews))
 	return nil
 }
 
@@ -232,14 +232,14 @@ func (m *mscalendar) GetDaySummaryForUser(day time.Time, user *User) (string, er
 
 	calendarData, err := m.getTodayCalendarEvents(user, day, timezone)
 	if err != nil {
-		return "Failed to get calendar events", err
+		return "캘린더 이벤트 가져오기 실패", err
 	}
 
 	events := m.excludeDeclinedEvents(calendarData)
 
 	messageString, err := views.RenderCalendarView(events, timezone)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to render daily summary")
+		return "", errors.Wrap(err, "일일 요약 렌더링 실패")
 	}
 
 	return messageString, nil
@@ -254,7 +254,7 @@ func shouldPostDailySummary(dsum *store.DailySummaryUserSettings, now time.Time)
 	if lastPostStr != "" {
 		lastPost, err := time.Parse(time.RFC3339, lastPostStr)
 		if err != nil {
-			return false, errors.New("Failed to parse last post time: " + lastPostStr)
+			return false, errors.New("마지막 게시 시간 파싱 실패: " + lastPostStr)
 		}
 		since := now.Sub(lastPost)
 		if since < dailySummaryTimeWindow {
@@ -264,7 +264,7 @@ func shouldPostDailySummary(dsum *store.DailySummaryUserSettings, now time.Time)
 
 	timezone := tz.Go(dsum.Timezone)
 	if timezone == "" {
-		return false, errors.New("invalid timezone")
+		return false, errors.New("잘못된 시간대")
 	}
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
