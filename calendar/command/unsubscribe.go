@@ -6,7 +6,7 @@ package command
 func (c *Command) unsubscribe(_ ...string) (string, bool, error) {
 	_, err := c.Engine.LoadMyEventSubscription()
 	if err != nil {
-		return "You are not subscribed to events.", false, nil
+		return "이벤트를 구독하고 있지 않습니다.", false, nil
 	}
 
 	err = c.Engine.DeleteMyEventSubscription()
@@ -14,5 +14,5 @@ func (c *Command) unsubscribe(_ ...string) (string, bool, error) {
 		return "", false, err
 	}
 
-	return "You have unsubscribed from events.", false, nil
+	return "이벤트 구독을 해제했습니다.", false, nil
 }
