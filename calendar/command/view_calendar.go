@@ -18,7 +18,7 @@ func (c *Command) viewCalendar(_ ...string) (string, bool, error) {
 			return store.ErrorUserInactive, false, nil
 		}
 
-		return "Error: No timezone found", false, err
+		return "오류: 시간대를 찾을 수 없습니다", false, err
 	}
 
 	startOfCurrentDay := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Now().Location())
