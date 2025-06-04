@@ -21,8 +21,8 @@ type notificationSetting struct {
 
 func NewNotificationsSetting(getCal func(string) Engine) settingspanel.Setting {
 	return &notificationSetting{
-		title:       "Receive notifications of new events",
-		description: "Do you want to subscribe to new events and receive a message when they are created?",
+		title:       "새 이벤트 알림 받기",
+		description: "새 이벤트를 구독하고 이벤트가 생성될 때 메시지를 받으시겠습니까?",
 		id:          "new_or_updated_event_setting",
 		dependsOn:   "",
 		getCal:      getCal,
@@ -90,8 +90,8 @@ func (s *notificationSetting) getActionStyle(actionValue, currentValue string) s
 }
 
 func (s *notificationSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	title := fmt.Sprintf("설정: %s", s.title)
+	currentValueMessage := "비활성화됨"
 
 	actions := []*model.PostAction{}
 	if !disabled {
@@ -100,14 +100,14 @@ func (s *notificationSetting) GetSlackAttachments(userID, settingHandler string,
 			return nil, err
 		}
 
-		currentTextValue := "No"
+		currentTextValue := "아니오"
 		if currentValue == "true" {
-			currentTextValue = "Yes"
+			currentTextValue = "예"
 		}
-		currentValueMessage = fmt.Sprintf("**Current value:** %s", currentTextValue)
+		currentValueMessage = fmt.Sprintf("**현재 값:** %s", currentTextValue)
 
 		actionTrue := model.PostAction{
-			Name:  "Yes",
+			Name:  "예",
 			Style: s.getActionStyle("true", currentValue.(string)),
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,
@@ -119,7 +119,7 @@ func (s *notificationSetting) GetSlackAttachments(userID, settingHandler string,
 		}
 
 		actionFalse := model.PostAction{
-			Name:  "No",
+			Name:  "아니오",
 			Style: s.getActionStyle("false", currentValue.(string)),
 			Integration: &model.PostActionIntegration{
 				URL: settingHandler,
