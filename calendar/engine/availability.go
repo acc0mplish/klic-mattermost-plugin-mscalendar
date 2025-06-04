@@ -25,12 +25,12 @@ const (
 	upcomingEventNotificationTime = 10 * time.Minute
 
 	upcomingEventNotificationWindow = (StatusSyncJobInterval * 11) / 10 // 110% of the interval
-	logTruncateMsg                  = "We've truncated the logs due to too many messages"
+	logTruncateMsg                  = "메시지가 너무 많아 로그를 잘랐습니다"
 	logTruncateLimit                = 5
 )
 
 var (
-	errNoUsersNeedToBeSynced = errors.New("no users need to be synced")
+	errNoUsersNeedToBeSynced = errors.New("동기화가 필요한 사용자가 없습니다")
 )
 
 type StatusSyncJobSummary struct {
@@ -55,7 +55,7 @@ func (m *mscalendar) Sync(mattermostUserID string) (string, *StatusSyncJobSummar
 
 	err = m.Filter(withSuperuserClient)
 	if err != nil && !errors.Is(err, remote.ErrSuperUserClientNotSupported) {
-		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "not able to filter the super user client")
+		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "슈퍼유저 클라이언트를 필터링할 수 없습니다")
 	}
 
 	return m.syncUsers(userIndex, errors.Is(err, remote.ErrSuperUserClientNotSupported))
@@ -65,14 +65,14 @@ func (m *mscalendar) SyncAll() (string, *StatusSyncJobSummary, error) {
 	userIndex, err := m.Store.LoadUserIndex()
 	if err != nil {
 		if err.Error() == "not found" {
-			return "No users found in user index", &StatusSyncJobSummary{}, nil
+			return "사용자 인덱스에서 사용자를 찾을 수 없습니다", &StatusSyncJobSummary{}, nil
 		}
-		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "not able to load the users from user index")
+		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "사용자 인덱스에서 사용자를 로드할 수 없습니다")
 	}
 
 	err = m.Filter(withSuperuserClient)
 	if err != nil && !errors.Is(err, remote.ErrSuperUserClientNotSupported) {
-		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "not able to filter the super user client")
+		return "", &StatusSyncJobSummary{}, errors.Wrap(err, "슈퍼유저 클라이언트를 필터링할 수 없습니다")
 	}
 
 	result, jobSummary, err := m.syncUsers(userIndex, errors.Is(err, remote.ErrSuperUserClientNotSupported))
@@ -99,7 +99,7 @@ func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSumma
 		if err != nil {
 			syncJobSummary.NumberOfUsersFailedStatusChanged++
 			if numberOfLogs < logTruncateLimit {
-				m.Logger.Warnf("Not able to load user %s from user index. err=%v", u.MattermostUserID, err)
+				m.Logger.Warnf("사용자 인덱스에서 사용자 %s를 로드할 수 없습니다. err=%v", u.MattermostUserID, err)
 			} else if numberOfLogs == logTruncateLimit {
 				m.Logger.Warnf(logTruncateMsg)
 			}
@@ -117,7 +117,7 @@ func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSumma
 		if fetchIndividually {
 			engine, err := m.FilterCopy(withActingUser(user.MattermostUserID))
 			if err != nil {
-				m.Logger.Warnf("Not able to enable active user %s from user index. err=%v", user.MattermostUserID, err)
+				m.Logger.Warnf("사용자 인덱스에서 활성 사용자 %s를 활성화할 수 없습니다. err=%v", user.MattermostUserID, err)
 				continue
 			}
 
@@ -128,7 +128,7 @@ func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSumma
 				m.Logger.With(bot.LogContext{
 					"user": u.MattermostUserID,
 					"err":  err,
-				}).Warnf("could not get calendar events")
+				}).Warnf("캘린더 이벤트를 가져올 수 없습니다")
 				continue
 			}
 
@@ -146,12 +146,12 @@ func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSumma
 		var err error
 		calendarViews, err = m.GetCalendarViews(users)
 		if err != nil {
-			return users, calendarViews, errors.Wrap(err, "not able to get calendar views for connected users")
+			return users, calendarViews, errors.Wrap(err, "연결된 사용자의 캘린더 뷰를 가져올 수 없습니다")
 		}
 	}
 
 	if len(calendarViews) == 0 {
-		return users, calendarViews, fmt.Errorf("no calendar views found")
+		return users, calendarViews, fmt.Errorf("캘린더 뷰를 찾을 수 없습니다")
 	}
 
 	// Sort events for all fetched calendar views
@@ -168,19 +168,19 @@ func (m *mscalendar) retrieveUsersToSync(userIndex store.UserIndex, syncJobSumma
 func (m *mscalendar) syncUsers(userIndex store.UserIndex, fetchIndividually bool) (string, *StatusSyncJobSummary, error) {
 	syncJobSummary := &StatusSyncJobSummary{}
 	if len(userIndex) == 0 {
-		return "No connected users found", syncJobSummary, nil
+		return "연결된 사용자를 찾을 수 없습니다", syncJobSummary, nil
 	}
 	syncJobSummary.NumberOfUsersProcessed = len(userIndex)
 
 	users, calendarViews, err := m.retrieveUsersToSync(userIndex, syncJobSummary, fetchIndividually)
 	if err != nil {
-		return err.Error(), syncJobSummary, errors.Wrapf(err, "error retrieving users to sync (individually=%v)", fetchIndividually)
+		return err.Error(), syncJobSummary, errors.Wrapf(err, "동기화할 사용자를 검색하는 중 오류 발생 (individually=%v)", fetchIndividually)
 	}
 
 	m.deliverReminders(users, calendarViews, fetchIndividually)
 	out, numberOfUsersStatusChanged, numberOfUsersFailedStatusChanged, err := m.setUserStatuses(users, calendarViews)
 	if err != nil {
-		return "", syncJobSummary, errors.Wrap(err, "error setting the user statuses")
+		return "", syncJobSummary, errors.Wrap(err, "사용자 상태를 설정하는 중 오류 발생")
 	}
 
 	syncJobSummary.NumberOfUsersFailedStatusChanged += numberOfUsersFailedStatusChanged
@@ -213,7 +213,7 @@ func (m *mscalendar) deliverReminders(users []*store.User, calendarViews []*remo
 		}
 		if view.Error != nil {
 			if numberOfLogs < logTruncateLimit {
-				m.Logger.Warnf("Error getting availability for %s. err=%s", user.MattermostUserID, view.Error.Message)
+				m.Logger.Warnf("%s의 가용성을 가져오는 중 오류 발생. err=%s", user.MattermostUserID, view.Error.Message)
 			} else if numberOfLogs == logTruncateLimit {
 				m.Logger.Warnf(logTruncateMsg)
 			}
@@ -225,7 +225,7 @@ func (m *mscalendar) deliverReminders(users []*store.User, calendarViews []*remo
 		if fetchIndividually {
 			engine, err := m.FilterCopy(withActingUser(user.MattermostUserID))
 			if err != nil {
-				m.Logger.With(bot.LogContext{"err": err}).Errorf("error getting engine for user")
+				m.Logger.With(bot.LogContext{"err": err}).Errorf("사용자 엔진을 가져오는 중 오류 발생")
 				continue
 			}
 			engine.notifyUpcomingEvents(mattermostUserID, view.Events)
@@ -244,7 +244,7 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 		}
 	}
 	if len(toUpdate) == 0 {
-		return "No users want their status updated", numberOfUserStatusChange, numberOfUserErrorInStatusChange, nil
+		return "상태 업데이트를 원하는 사용자가 없습니다", numberOfUserStatusChange, numberOfUserErrorInStatusChange, nil
 	}
 
 	mattermostUserIDs := []string{}
@@ -256,7 +256,7 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 
 	statuses, appErr := m.PluginAPI.GetMattermostUserStatusesByIds(mattermostUserIDs)
 	if appErr != nil {
-		return "", numberOfUserStatusChange, numberOfUserErrorInStatusChange, errors.Wrap(appErr, "error in getting Mattermost user statuses for connected users")
+		return "", numberOfUserStatusChange, numberOfUserErrorInStatusChange, errors.Wrap(appErr, "연결된 사용자의 Mattermost 사용자 상태를 가져오는 중 오류 발생")
 	}
 	statusMap := map[string]*model.Status{}
 	for _, s := range statuses {
@@ -272,7 +272,7 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 		}
 		if view.Error != nil {
 			if numberOfLogs < logTruncateLimit {
-				m.Logger.Warnf("Error getting availability for %s. err=%s", user.MattermostUserID, view.Error.Message)
+				m.Logger.Warnf("%s의 가용성을 가져오는 중 오류 발생. err=%s", user.MattermostUserID, view.Error.Message)
 			} else if numberOfLogs == logTruncateLimit {
 				m.Logger.Warnf(logTruncateMsg)
 			}
@@ -295,7 +295,7 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 			res, isStatusChanged, err = m.setStatusFromCalendarView(user, status, events)
 			if err != nil {
 				if numberOfLogs < logTruncateLimit {
-					m.Logger.Warnf("Error setting user %s status. err=%v", user.MattermostUserID, err)
+					m.Logger.Warnf("사용자 %s 상태 설정 중 오류 발생. err=%v", user.MattermostUserID, err)
 				} else if numberOfLogs == logTruncateLimit {
 					m.Logger.Warnf(logTruncateMsg)
 				}
@@ -311,7 +311,7 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 			res, isStatusChanged, err = m.setCustomStatusFromCalendarView(user, events)
 			if err != nil {
 				if numberOfLogs < logTruncateLimit {
-					m.Logger.Warnf("Error setting user %s custom status. err=%v", user.MattermostUserID, err)
+					m.Logger.Warnf("사용자 %s 커스텀 상태 설정 중 오류 발생. err=%v", user.MattermostUserID, err)
 				} else if numberOfLogs == logTruncateLimit {
 					m.Logger.Warnf(logTruncateMsg)
 				}
@@ -336,13 +336,13 @@ func (m *mscalendar) setUserStatuses(users []*store.User, calendarViews []*remot
 func (m *mscalendar) setCustomStatusFromCalendarView(user *store.User, events []*remote.Event) (string, bool, error) {
 	isStatusChanged := false
 	if !user.IsConfiguredForCustomStatusUpdates() {
-		return "User doesn't want to set custom status", isStatusChanged, nil
+		return "사용자가 커스텀 상태 설정을 원하지 않습니다", isStatusChanged, nil
 	}
 
 	if len(events) == 0 {
 		if user.IsCustomStatusSet {
 			if err := m.PluginAPI.RemoveMattermostUserCustomStatus(user.MattermostUserID); err != nil {
-				m.Logger.Warnf("Error removing user %s custom status. err=%v", user.MattermostUserID, err)
+				m.Logger.Warnf("사용자 %s 커스텀 상태 제거 중 오류 발생. err=%v", user.MattermostUserID, err)
 			}
 
 			if err := m.Store.StoreUserCustomStatusUpdates(user.MattermostUserID, false); err != nil {
@@ -350,7 +350,7 @@ func (m *mscalendar) setCustomStatusFromCalendarView(user *store.User, events []
 			}
 		}
 
-		return "No event present to set custom status", isStatusChanged, nil
+		return "커스텀 상태를 설정할 이벤트가 없습니다", isStatusChanged, nil
 	}
 
 	currentUser, err := m.PluginAPI.GetMattermostUser(user.MattermostUserID)
@@ -360,12 +360,12 @@ func (m *mscalendar) setCustomStatusFromCalendarView(user *store.User, events []
 
 	currentCustomStatus := currentUser.GetCustomStatus()
 	if currentCustomStatus != nil && !user.IsCustomStatusSet {
-		return "User already has a custom status set, ignoring custom status change", isStatusChanged, nil
+		return "사용자가 이미 커스텀 상태를 설정했습니다. 커스텀 상태 변경을 무시합니다", isStatusChanged, nil
 	}
 
 	if appErr := m.PluginAPI.UpdateMattermostUserCustomStatus(user.MattermostUserID, &model.CustomStatus{
 		Emoji:     "calendar",
-		Text:      "In a meeting",
+		Text:      "회의 중",
 		ExpiresAt: events[0].End.Time(),
 		Duration:  "date_and_time",
 	}); appErr != nil {
@@ -384,11 +384,11 @@ func (m *mscalendar) setStatusFromCalendarView(user *store.User, status *model.S
 	isStatusChanged := false
 	currentStatus := status.Status
 	if !user.IsConfiguredForStatusUpdates() {
-		return "No value set from options to update status", isStatusChanged, nil
+		return "상태 업데이트 옵션에서 설정된 값이 없습니다", isStatusChanged, nil
 	}
 
 	if currentStatus == model.StatusOffline && !user.Settings.GetConfirmation {
-		return "User offline and does not want status change confirmations. No status change", isStatusChanged, nil
+		return "사용자가 오프라인이고 상태 변경 확인을 원하지 않습니다. 상태 변경 없음", isStatusChanged, nil
 	}
 
 	busyStatus := model.StatusDnd
@@ -397,26 +397,26 @@ func (m *mscalendar) setStatusFromCalendarView(user *store.User, status *model.S
 	}
 
 	if len(user.ActiveEvents) == 0 && len(events) == 0 {
-		return "No events in local or remote. No status change.", isStatusChanged, nil
+		return "로컬 또는 원격에 이벤트가 없습니다. 상태 변경 없음.", isStatusChanged, nil
 	}
 
 	if len(user.ActiveEvents) > 0 && len(events) == 0 {
-		message := fmt.Sprintf("User is no longer busy in calendar, but is not set to busy (%s). No status change.", busyStatus)
+		message := fmt.Sprintf("사용자가 더 이상 캘린더에서 바쁘지 않지만 바쁨(%s)으로 설정되지 않았습니다. 상태 변경 없음.", busyStatus)
 		if currentStatus == busyStatus {
-			message = "User is no longer busy in calendar. Set status to online."
+			message = "사용자가 더 이상 캘린더에서 바쁘지 않습니다. 상태를 온라인으로 설정합니다."
 			if user.LastStatus != "" {
-				message = fmt.Sprintf("User is no longer busy in calendar. Set status to previous status (%s)", user.LastStatus)
+				message = fmt.Sprintf("사용자가 더 이상 캘린더에서 바쁘지 않습니다. 상태를 이전 상태(%s)로 설정합니다", user.LastStatus)
 			}
 			err := m.setStatusOrAskUser(user, status, events, true)
 			if err != nil {
-				return "", isStatusChanged, errors.Wrapf(err, "error in setting user status for user %s", user.MattermostUserID)
+				return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 사용자 상태 설정 중 오류 발생", user.MattermostUserID)
 			}
 			isStatusChanged = true
 		}
 
 		err := m.Store.StoreUserActiveEvents(user.MattermostUserID, []string{})
 		if err != nil {
-			return "", isStatusChanged, errors.Wrapf(err, "error in storing active events for user %s", user.MattermostUserID)
+			return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 활성 이벤트 저장 중 오류 발생", user.MattermostUserID)
 		}
 		return message, isStatusChanged, nil
 	}
@@ -440,20 +440,20 @@ func (m *mscalendar) setStatusFromCalendarView(user *store.User, status *model.S
 			m.Store.StoreUser(user)
 			err = m.Store.StoreUserActiveEvents(user.MattermostUserID, remoteHashes)
 			if err != nil {
-				return "", isStatusChanged, errors.Wrapf(err, "error in storing active events for user %s", user.MattermostUserID)
+				return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 활성 이벤트 저장 중 오류 발생", user.MattermostUserID)
 			}
-			return "User was already marked as busy. No status change.", isStatusChanged, nil
+			return "사용자가 이미 바쁨으로 표시되었습니다. 상태 변경 없음.", isStatusChanged, nil
 		}
 		err = m.setStatusOrAskUser(user, status, events, false)
 		if err != nil {
-			return "", isStatusChanged, errors.Wrapf(err, "error in setting user status for user %s", user.MattermostUserID)
+			return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 사용자 상태 설정 중 오류 발생", user.MattermostUserID)
 		}
 		isStatusChanged = true
 		err = m.Store.StoreUserActiveEvents(user.MattermostUserID, remoteHashes)
 		if err != nil {
-			return "", isStatusChanged, errors.Wrapf(err, "error in storing active events for user %s", user.MattermostUserID)
+			return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 활성 이벤트 저장 중 오류 발생", user.MattermostUserID)
 		}
-		return fmt.Sprintf("User was free, but is now busy (%s). Set status to busy.", busyStatus), isStatusChanged, nil
+		return fmt.Sprintf("사용자가 한가했지만 지금은 바쁩니다(%s). 상태를 바쁨으로 설정합니다.", busyStatus), isStatusChanged, nil
 	}
 
 	newEventExists := false
@@ -472,22 +472,22 @@ func (m *mscalendar) setStatusFromCalendarView(user *store.User, status *model.S
 	}
 
 	if !newEventExists {
-		return fmt.Sprintf("No change in active events. Total number of events: %d", len(events)), isStatusChanged, nil
+		return fmt.Sprintf("활성 이벤트에 변경 사항이 없습니다. 총 이벤트 수: %d", len(events)), isStatusChanged, nil
 	}
 
-	message := "User is already busy. No status change."
+	message := "사용자가 이미 바쁩니다. 상태 변경 없음."
 	if currentStatus != busyStatus {
 		err := m.setStatusOrAskUser(user, status, events, false)
 		if err != nil {
-			return "", isStatusChanged, errors.Wrapf(err, "error in setting user status for user %s", user.MattermostUserID)
+			return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 사용자 상태 설정 중 오류 발생", user.MattermostUserID)
 		}
 		isStatusChanged = true
-		message = fmt.Sprintf("User was free, but is now busy. Set status to busy (%s).", busyStatus)
+		message = fmt.Sprintf("사용자가 한가했지만 지금은 바쁩니다. 상태를 바쁨(%s)으로 설정합니다.", busyStatus)
 	}
 
 	err := m.Store.StoreUserActiveEvents(user.MattermostUserID, remoteHashes)
 	if err != nil {
-		return "", isStatusChanged, errors.Wrapf(err, "error in storing active events for user %s", user.MattermostUserID)
+		return "", isStatusChanged, errors.Wrapf(err, "사용자 %s의 활성 이벤트 저장 중 오류 발생", user.MattermostUserID)
 	}
 
 	return message, isStatusChanged, nil
@@ -542,12 +542,12 @@ func (m *mscalendar) setStatusOrAskUser(user *store.User, currentStatus *model.S
 func (m *mscalendar) GetCalendarEvents(user *User, start, end time.Time, excludeDeclined bool) (*remote.ViewCalendarResponse, error) {
 	err := m.Filter(withClient)
 	if err != nil {
-		return nil, errors.Wrap(err, "error withClient in GetCalendarEvents")
+		return nil, errors.Wrap(err, "GetCalendarEvents에서 withClient 오류")
 	}
 
 	events, err := m.client.GetEventsBetweenDates(user.Remote.ID, start, end)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error getting events for user %s", user.MattermostUserID)
+		return nil, errors.Wrapf(err, "사용자 %s의 이벤트를 가져오는 중 오류 발생", user.MattermostUserID)
 	}
 
 	if excludeDeclined {
@@ -563,7 +563,7 @@ func (m *mscalendar) GetCalendarEvents(user *User, start, end time.Time, exclude
 func (m *mscalendar) GetCalendarViews(users []*store.User) ([]*remote.ViewCalendarResponse, error) {
 	err := m.Filter(withClient)
 	if err != nil {
-		return nil, fmt.Errorf("error withClient in GetCalendarViews: %w", err)
+		return nil, fmt.Errorf("GetCalendarViews에서 withClient 오류: %w", err)
 	}
 
 	start := time.Now().UTC()
@@ -596,20 +596,20 @@ func (m *mscalendar) notifyUpcomingEvents(mattermostUserID string, events []*rem
 			if timezone == "" {
 				timezone, err = m.GetTimezoneByID(mattermostUserID)
 				if err != nil {
-					m.Logger.Warnf("notifyUpcomingEvents error getting timezone. err=%v", err)
+					m.Logger.Warnf("notifyUpcomingEvents 시간대 가져오기 오류. err=%v", err)
 					return
 				}
 			}
 
 			_, attachment, err := views.RenderUpcomingEventAsAttachment(event, timezone)
 			if err != nil {
-				m.Logger.Warnf("notifyUpcomingEvent error rendering schedule item. err=%v", err)
+				m.Logger.Warnf("notifyUpcomingEvent 일정 항목 렌더링 오류. err=%v", err)
 				continue
 			}
 
 			_, err = m.Poster.DMWithAttachments(mattermostUserID, attachment)
 			if err != nil {
-				m.Logger.Warnf("notifyUpcomingEvents error creating DM. err=%v", err)
+				m.Logger.Warnf("notifyUpcomingEvents DM 생성 오류. err=%v", err)
 				continue
 			}
 
@@ -619,7 +619,7 @@ func (m *mscalendar) notifyUpcomingEvents(mattermostUserID string, events []*rem
 				m.Logger.With(bot.LogContext{
 					"eventID": event.ID,
 					"err":     errMetadata.Error(),
-				}).Warnf("notifyUpcomingEvents error checking store for channel notifications")
+				}).Warnf("notifyUpcomingEvents 채널 알림을 위한 스토어 확인 오류")
 				continue
 			}
 
@@ -627,17 +627,17 @@ func (m *mscalendar) notifyUpcomingEvents(mattermostUserID string, events []*rem
 				for channelID := range eventMetadata.LinkedChannelIDs {
 					post := &model.Post{
 						ChannelId: channelID,
-						Message:   "Upcoming event",
+						Message:   "예정된 이벤트",
 					}
 					attachment, errRender := views.RenderEventAsAttachment(event, timezone, views.ShowTimezoneOption(timezone))
 					if errRender != nil {
-						m.Logger.With(bot.LogContext{"err": errRender}).Errorf("notifyUpcomingEvents error rendering channel post")
+						m.Logger.With(bot.LogContext{"err": errRender}).Errorf("notifyUpcomingEvents 채널 게시물 렌더링 오류")
 						continue
 					}
 					model.ParseSlackAttachment(post, []*model.SlackAttachment{attachment})
 					errPoster := m.Poster.CreatePost(post)
 					if errPoster != nil {
-						m.Logger.With(bot.LogContext{"err": errPoster}).Warnf("notifyUpcomingEvents error creating post in channel")
+						m.Logger.With(bot.LogContext{"err": errPoster}).Warnf("notifyUpcomingEvents 채널에 게시물 생성 오류")
 						continue
 					}
 				}
@@ -682,10 +682,11 @@ There are two conditions that are being checked in the function:
   - If two events overlap, the end time of event1 will be
     greater than or equal to event2 and we can merge those events into a single event.
     For e.g.- event1: 1:01–1:04, event2: 1:03–1:05. Final event: 1:01–1:05.
-  - If the difference between event1 end time and event1 start time isor equal to StatusSyncJobInterval and the difference between event2 start time and event1 end time is less than or equal to StatusSyncJobInterval. This is done to merge those events that occur within the time span of StatusSyncJobInterval.
+  - If the difference between event1 end time and event1 start time is less than or equal to StatusSyncJobInterval and the difference between event2 start time and event1 end time is less than or equal to StatusSyncJobInterval. This is done to merge those events that occur within the time span of StatusSyncJobInterval.
     For e.g.- event1: 1:01–1:02, event2: 1:03–1:05, StatusSyncJobInterval: 5 mins. Final event: 1:01–1:05.
     This is done to avoid skipping of event2 as both events are fetched together in a single API call when the job runs every 5 minutes.
 */
 func areEventsMergeable(event1, event2 *remote.Event) bool {
 	return (event1.End.Time().UnixMicro() >= event2.Start.Time().UnixMicro()) || (event1.End.Time().Sub(event1.Start.Time()) <= StatusSyncJobInterval && event2.Start.Time().Sub(event1.End.Time()) <= StatusSyncJobInterval)
 }
+
