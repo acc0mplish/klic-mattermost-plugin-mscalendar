@@ -69,7 +69,7 @@ func (m *mscalendar) ExpandRemoteUser(user *User) error {
 	if user.User == nil {
 		storedUser, err := m.Store.LoadUser(user.MattermostUserID)
 		if err != nil {
-			return errors.Wrapf(err, "It looks like your Mattermost account is not connected to %s. Please connect your account using `/%s connect`.", m.Provider.DisplayName, m.Provider.CommandTrigger) //nolint:revive
+			return errors.Wrapf(err, "Mattermost 계정이 %s에 연결되지 않은 것 같습니다. `/%s connect` 명령을 사용하여 계정을 연결해주세요.", m.Provider.DisplayName, m.Provider.CommandTrigger) //nolint:revive
 		}
 		user.User = storedUser
 	}
@@ -120,7 +120,7 @@ func (user *User) Markdown() string {
 		return fmt.Sprintf("@%s", user.MattermostUser.Username)
 	}
 
-	return fmt.Sprintf("UserID: `%s`", user.MattermostUserID)
+	return fmt.Sprintf("사용자 ID: `%s`", user.MattermostUserID)
 }
 
 func (m *mscalendar) DisconnectUser(mattermostUserID string) error {
@@ -137,7 +137,7 @@ func (m *mscalendar) DisconnectUser(mattermostUserID string) error {
 		return err
 	}
 
-	// Unlink events owned by the user that is disconnecting its account
+	// 계정 연결을 해제하는 사용자가 소유한 이벤트의 연결 해제
 	linkedEventsLeft := make(map[string]string)
 	for eventID, channelID := range storedUser.ChannelEvents {
 		if errStore := m.Store.DeleteLinkedChannelFromEvent(eventID, channelID); errStore != nil {
@@ -151,26 +151,26 @@ func (m *mscalendar) DisconnectUser(mattermostUserID string) error {
 				"err":                  errStore,
 				"mm_user_id":           storedUser.MattermostDisplayName,
 				"linked_channels_left": linkedEventsLeft,
-			}).Errorf("error storing user after failing deleting linked channels from store")
+			}).Errorf("연결된 채널 삭제 실패 후 사용자 저장 중 오류 발생")
 		}
-		return fmt.Errorf("error deleting linked channels from events")
+		return fmt.Errorf("이벤트에서 연결된 채널 삭제 중 오류 발생")
 	}
 
 	eventSubscriptionID := storedUser.Settings.EventSubscriptionID
 	if eventSubscriptionID != "" {
 		sub, errLoad := m.Store.LoadSubscription(eventSubscriptionID)
 		if errLoad != nil {
-			return errors.Wrap(errLoad, "error loading subscription")
+			return errors.Wrap(errLoad, "구독 로드 중 오류 발생")
 		}
 
 		err = m.Store.DeleteUserSubscription(storedUser, eventSubscriptionID)
 		if err != nil && err != store.ErrNotFound {
-			return errors.WithMessagef(err, "failed to delete subscription %s", eventSubscriptionID)
+			return errors.WithMessagef(err, "구독 %s 삭제 실패", eventSubscriptionID)
 		}
 
 		err = m.client.DeleteSubscription(sub.Remote)
 		if err != nil {
-			m.Logger.Warnf("failed to delete remote subscription %s. err=%v", eventSubscriptionID, err)
+			m.Logger.Warnf("원격 구독 %s 삭제 실패. err=%v", eventSubscriptionID, err)
 		}
 	}
 
